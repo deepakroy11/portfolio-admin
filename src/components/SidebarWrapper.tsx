@@ -4,8 +4,8 @@ import SideNavbar from "./SideNavbar";
 import { usePageCheck } from "@/hooks/usePageCheck";
 
 const SidebarWrapper = () => {
-  const isLoginPage = usePageCheck();
-  if (isLoginPage) {
+  const pathname = usePageCheck();
+  if (pathname == "/login") {
     return null; // Don't render sidebar on login page
   }
 

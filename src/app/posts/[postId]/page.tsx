@@ -1,87 +1,141 @@
-import { Card, CardHeader } from "@heroui/react";
+"use client";
+import {
+  Form,
+  Input,
+  Button,
+  Textarea,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@heroui/react";
+import { useState } from "react";
+import posts from "@/data/blog_posts.json";
+import { useParams } from "next/navigation";
 
 export default function PostsPage() {
+  const { postId } = useParams();
+  const post = posts.find((p) => p.slug === postId);
+  const [action, setAction] = useState<string | null>(null);
+
   return (
     <main className="flex-1 p-8 space-y-10">
       {/* Dashboard Header */}
       <div>
-        <h1 className="text-3xl font-bold">Post Page | Single Post</h1>
-        <p className="text-muted-foreground mt-1">
-          Welcome back, Deepak! Here’s a quick overview of your site's
-          performance.
-        </p>
+        <h1 className="text-3xl font-bold">Post : {post?.title}</h1>
       </div>
 
       {/* Key Metrics */}
       <section>
-        <h2 className="text-xl font-semibold mb-4">Key Metrics</h2>
-        <div className="flex flex-col md:flex-row gap-6">
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-medium">Total Posts</h3>
-            </CardHeader>
-            <div className="p-4">
-              <p className="text-3xl font-bold">42</p>
-            </div>
-          </Card>
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-medium">Total Users</h3>
-            </CardHeader>
-            <div className="p-4">
-              <p className="text-3xl font-bold">128</p>
-            </div>
-          </Card>
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-medium">Page Views</h3>
-            </CardHeader>
-            <div className="p-4">
-              <p className="text-3xl font-bold">3.2K</p>
-            </div>
-          </Card>
-        </div>
-      </section>
+        <Form
+          className="w-full max-w-4xl flex flex-col gap-4"
+          onReset={() => setAction("reset")}
+          onSubmit={(e) => {
+            e.preventDefault();
+            let data = Object.fromEntries(new FormData(e.currentTarget));
 
-      {/* Recent Activity */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-        <Card>
-          <div className="max-h-64 overflow-y-auto">
-            <ul className="divide-y mb-2 divide-border">
-              {[
-                {
-                  user: "John Doe",
-                  action: "published a new post",
-                  time: "10 minutes ago",
-                },
-                {
-                  user: "Jane Smith",
-                  action: "updated a user profile",
-                  time: "30 minutes ago",
-                },
-                {
-                  user: "System",
-                  action: "reported a new comment pending review",
-                  time: "1 hour ago",
-                },
-              ].map((activity, index) => (
-                <li
-                  key={index}
-                  className="p-4 hover:bg-muted transition-colors rounded"
-                >
-                  <p>
-                    <span className="font-medium">{activity.user}</span>{" "}
-                    {activity.action}.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {activity.time}
-                  </p>
-                </li>
-              ))}
-            </ul>
+            setAction(`submit ${JSON.stringify(data)}`);
+          }}
+        >
+          <div className="w-full flex flex-row gap-2">
+            <div className="basis-1/2">
+              <Input
+                isRequired
+                errorMessage="Please enter a valid title"
+                label="Title"
+                labelPlacement="outside"
+                name="title"
+                placeholder="Enter your title"
+                type="text"
+                value={post?.title || ""}
+              />
+            </div>
+            <div className="basis-1/2">
+              <Input
+                isRequired
+                errorMessage="Please enter a valid slug"
+                label="Slug"
+                labelPlacement="outside"
+                name="slug"
+                placeholder="Enter your slug"
+                type="text"
+                value={post?.slug || ""}
+              />
+            </div>
           </div>
-        </Card>
+
+          <Textarea
+            isRequired
+            errorMessage="Please enter a valid summary"
+            label="Summary"
+            labelPlacement="outside"
+            name="summary"
+            placeholder="Enter post summary"
+            value={post?.summary || ""}
+          />
+          <Textarea
+            isRequired
+            errorMessage="Please enter a valid description"
+            label="Description (Main Content)"
+            labelPlacement="outside"
+            name="description"
+            placeholder="Enter post description"
+            value={post?.description || ""}
+          />
+          <div className="w-full flex flex-row gap-2">
+            <div className="basis-1/5">
+              <Dropdown>
+                <DropdownTrigger>
+                  <Button variant="bordered">Select Category</Button>
+                </DropdownTrigger>
+                <DropdownMenu aria-label="Static Actions">
+                  <DropdownItem key="new">New file</DropdownItem>
+                  <DropdownItem key="copy">Copy link</DropdownItem>
+                  <DropdownItem key="edit">Edit file</DropdownItem>
+                  <DropdownItem
+                    key="delete"
+                    className="text-danger"
+                    color="danger"
+                  >
+                    Delete file
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            </div>
+            <div className="basis-1/5">
+              <Dropdown>
+                <DropdownTrigger>
+                  <Button variant="bordered">Select Tags</Button>
+                </DropdownTrigger>
+                <DropdownMenu aria-label="Static Actions">
+                  <DropdownItem key="new">New file</DropdownItem>
+                  <DropdownItem key="copy">Copy link</DropdownItem>
+                  <DropdownItem key="edit">Edit file</DropdownItem>
+                  <DropdownItem
+                    key="delete"
+                    className="text-danger"
+                    color="danger"
+                  >
+                    Delete file
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button color="primary" type="submit">
+              Submit
+            </Button>
+            <Button type="reset" variant="flat">
+              Reset
+            </Button>
+          </div>
+          {action && (
+            <div className="text-small text-default-500">
+              Action: <code>{action}</code>
+            </div>
+          )}
+        </Form>
       </section>
     </main>
   );

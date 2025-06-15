@@ -1,11 +1,38 @@
-import { Card, CardHeader } from "@heroui/react";
+"use client";
+import {
+  Button,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Pagination,
+  Dropdown,
+  DropdownMenu,
+  DropdownItem,
+  DropdownTrigger,
+} from "@heroui/react";
+import posts from "@/data/blog_posts.json";
+import Link from "next/link";
+import { BsTags, BsThreeDotsVertical } from "react-icons/bs";
+import { useMemo, useState } from "react";
 
 export default function PostsPage() {
+  const [page, setPage] = useState(1);
+  const postPerPage = 8;
+  const pages = Math.ceil(posts.length / postPerPage);
+  const paginatredPosts = useMemo(() => {
+    const start = (page - 1) * postPerPage;
+    const end = start + postPerPage;
+
+    return posts.slice(start, end);
+  }, [page, posts]);
   return (
     <main className="flex-1 p-8 space-y-10">
       {/* Dashboard Header */}
       <div>
-        <h1 className="text-3xl font-bold">Posts Page | All Posts</h1>
+        <h1 className="text-3xl font-bold">All Posts</h1>
         <p className="text-muted-foreground mt-1">
           Welcome back, Deepak! Here’s a quick overview of your site's
           performance.
@@ -14,74 +41,81 @@ export default function PostsPage() {
 
       {/* Key Metrics */}
       <section>
-        <h2 className="text-xl font-semibold mb-4">Key Metrics</h2>
-        <div className="flex flex-col md:flex-row gap-6">
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-medium">Total Posts</h3>
-            </CardHeader>
-            <div className="p-4">
-              <p className="text-3xl font-bold">42</p>
+        <h2 className="text-xl font-semibold mb-4">All Posts</h2>
+        <Table
+          aria-label="collection table"
+          isCompact
+          bottomContent={
+            <div className="flex w-full justify-center">
+              <Pagination
+                isCompact
+                showControls
+                showShadow
+                color="secondary"
+                page={page}
+                total={pages}
+                onChange={(page) => setPage(page)}
+              />
             </div>
-          </Card>
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-medium">Total Users</h3>
-            </CardHeader>
-            <div className="p-4">
-              <p className="text-3xl font-bold">128</p>
-            </div>
-          </Card>
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-medium">Page Views</h3>
-            </CardHeader>
-            <div className="p-4">
-              <p className="text-3xl font-bold">3.2K</p>
-            </div>
-          </Card>
-        </div>
-      </section>
-
-      {/* Recent Activity */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-        <Card>
-          <div className="max-h-64 overflow-y-auto">
-            <ul className="divide-y mb-2 divide-border">
-              {[
-                {
-                  user: "John Doe",
-                  action: "published a new post",
-                  time: "10 minutes ago",
-                },
-                {
-                  user: "Jane Smith",
-                  action: "updated a user profile",
-                  time: "30 minutes ago",
-                },
-                {
-                  user: "System",
-                  action: "reported a new comment pending review",
-                  time: "1 hour ago",
-                },
-              ].map((activity, index) => (
-                <li
-                  key={index}
-                  className="p-4 hover:bg-muted transition-colors rounded"
-                >
-                  <p>
-                    <span className="font-medium">{activity.user}</span>{" "}
-                    {activity.action}.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {activity.time}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Card>
+          }
+        >
+          <TableHeader>
+            <TableColumn>ID</TableColumn>
+            <TableColumn>Title</TableColumn>
+            <TableColumn>Summary</TableColumn>
+            <TableColumn>Category</TableColumn>
+            <TableColumn>Author</TableColumn>
+            <TableColumn>Tags</TableColumn>
+            <TableColumn>Actions</TableColumn>
+          </TableHeader>
+          <TableBody>
+            {paginatredPosts.map((post, index) => (
+              <TableRow key={post.slug} className="border-b">
+                <TableCell>{index + 1}</TableCell>
+                <TableCell>
+                  <Link href={`/posts/${post.slug}`} color="secondary">
+                    {post.title}
+                  </Link>
+                </TableCell>
+                <TableCell>{post.summary}</TableCell>
+                <TableCell>
+                  <Link href={`#`} color="secondary">
+                    {post.category}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <Link href={`#`} color="secondary">
+                    {post.author}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  {post.tags.map((tag) => (
+                    <span key={tag} className="flex items-center gap-1">
+                      <BsTags />
+                      <Link href="#">{tag}</Link>
+                    </span>
+                  ))}
+                </TableCell>
+                <TableCell>
+                  <div className="relative flex justify-end  gap-2">
+                    <Dropdown>
+                      <DropdownTrigger>
+                        <Button size="sm" variant="light">
+                          <BsThreeDotsVertical className="h-5 w-5" />
+                        </Button>
+                      </DropdownTrigger>
+                      <DropdownMenu>
+                        <DropdownItem key="view">View</DropdownItem>
+                        <DropdownItem key="edit">Edit</DropdownItem>
+                        <DropdownItem key="delete">Delete</DropdownItem>
+                      </DropdownMenu>
+                    </Dropdown>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </section>
     </main>
   );
