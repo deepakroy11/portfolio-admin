@@ -1,88 +1,82 @@
-import { Card, CardHeader } from "@heroui/react";
+"use client";
+
+import { Input, Button, Card, CardBody, Divider } from "@heroui/react";
+import { useSession, signIn as logIn, signOut } from "next-auth/react";
+import { signIn } from "../action/sign-in";
+import { BsGoogle, BsGithub, BsKeyFill } from "react-icons/bs";
+
+export const DiverWithText = ({ text }: { text: string }) => {
+  return (
+    <div className="flex items-center my-4">
+      <div className="flex-grow h-px bg-gray-300" />
+      <span className="px-4 text-sm text-gray-500">{text}</span>
+      <div className="flex-grow h-px bg-gray-300" />
+    </div>
+  );
+};
 
 export default function LoginPage() {
+  const { data: session } = useSession();
+
   return (
-    <main className="flex-1 p-8 space-y-10">
-      {/* Dashboard Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Settings Page</h1>
-        <p className="text-muted-foreground mt-1">
-          Welcome back, Deepak! Here’s a quick overview of your site's
-          performance.
-        </p>
-      </div>
+    <main className="w-full h-screen flex flex-col items-center justify-center bg-base-100 space-y-6">
+      <h1 className="text-4xl font-semibold">Portfolio | Admin Panel</h1>
 
-      {/* Key Metrics */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Key Metrics</h2>
-        <div className="flex flex-col md:flex-row gap-6">
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-medium">Total Posts</h3>
-            </CardHeader>
-            <div className="p-4">
-              <p className="text-3xl font-bold">42</p>
-            </div>
-          </Card>
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-medium">Total Users</h3>
-            </CardHeader>
-            <div className="p-4">
-              <p className="text-3xl font-bold">128</p>
-            </div>
-          </Card>
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-medium">Page Views</h3>
-            </CardHeader>
-            <div className="p-4">
-              <p className="text-3xl font-bold">3.2K</p>
-            </div>
-          </Card>
-        </div>
-      </section>
+      <Card className="w-full max-w-md p-6 shadow-lg">
+        <CardBody className="space-y-6 text-center">
+          <h2 className="text-xl font-bold">Sign In</h2>
+          <Divider />
+          <form className="space-y-4 text-left">
+            <Input
+              type="text"
+              name="userid"
+              label="User Id"
+              placeholder="Please enter user id"
+              className="mb-5"
+              required
+            />
 
-      {/* Recent Activity */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-        <Card>
-          <div className="max-h-64 overflow-y-auto">
-            <ul className="divide-y mb-2 divide-border">
-              {[
-                {
-                  user: "John Doe",
-                  action: "published a new post",
-                  time: "10 minutes ago",
-                },
-                {
-                  user: "Jane Smith",
-                  action: "updated a user profile",
-                  time: "30 minutes ago",
-                },
-                {
-                  user: "System",
-                  action: "reported a new comment pending review",
-                  time: "1 hour ago",
-                },
-              ].map((activity, index) => (
-                <li
-                  key={index}
-                  className="p-4 hover:bg-muted transition-colors rounded"
-                >
-                  <p>
-                    <span className="font-medium">{activity.user}</span>{" "}
-                    {activity.action}.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {activity.time}
-                  </p>
-                </li>
-              ))}
-            </ul>
+            <Input
+              type="password"
+              name="password"
+              label="Password"
+              placeholder="Please enter password"
+              required
+            />
+
+            <Button
+              type="submit"
+              className="w-full"
+              startContent={<BsKeyFill className="h-5 w-5 rotate-60" />}
+            >
+              Sign in with Credentials
+            </Button>
+          </form>
+
+          <DiverWithText text="or" />
+
+          <div className="space-y-2">
+            <form action={signIn}>
+              <Button
+                type="submit"
+                className="w-full"
+                startContent={<BsGithub className="w-5 h-5" />}
+              >
+                Sign in with GitHub
+              </Button>
+            </form>
+            <form action={signIn}>
+              <Button
+                type="submit"
+                className="w-full"
+                startContent={<BsGoogle className="w-5 h-5" />}
+              >
+                Sign in with Google
+              </Button>
+            </form>
           </div>
-        </Card>
-      </section>
+        </CardBody>
+      </Card>
     </main>
   );
 }
