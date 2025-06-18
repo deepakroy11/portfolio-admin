@@ -1,7 +1,6 @@
 "use client";
 
 import { Input, Button, Card, CardBody, Divider } from "@heroui/react";
-import { useSession, signIn as logIn, signOut } from "next-auth/react";
 import { signIn } from "../action/sign-in";
 import { BsGoogle, BsGithub, BsKeyFill } from "react-icons/bs";
 
@@ -16,8 +15,6 @@ export const DiverWithText = ({ text }: { text: string }) => {
 };
 
 export default function LoginPage() {
-  const { data: session } = useSession();
-
   return (
     <main className="w-full h-screen flex flex-col items-center justify-center bg-base-100 space-y-6">
       <h1 className="text-4xl font-semibold">Portfolio | Admin Panel</h1>

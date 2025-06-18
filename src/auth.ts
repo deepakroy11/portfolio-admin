@@ -13,14 +13,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     GitHub({ clientId: GITHUB_CLIENT_ID, clientSecret: GITHUB_CLIENT_SECRET }),
   ],
+  pages: {
+    signIn: "/login",
+  },
   callbacks: {
-    // Usually not needed, here we are fixing a bug in nextauth
-    async session({ session, user }: any) {
-      if (session && user) {
-        session.user.id = user.id;
-      }
-
-      return session;
+    authorized: async ({ auth }) => {
+      // Logged in users are authenticated, otherwise redirect to login page
+      return !!auth;
+    },
+    redirect() {
+      return "/dashboard";
     },
   },
 });

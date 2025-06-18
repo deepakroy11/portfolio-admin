@@ -12,6 +12,7 @@ import {
 import { useState } from "react";
 import posts from "@/data/blog_posts.json";
 import { useParams } from "next/navigation";
+import CKEditorComponent from "@/components/Editor/CKEditor";
 
 export default function PostsPage() {
   const { postId } = useParams();
@@ -63,25 +64,21 @@ export default function PostsPage() {
               />
             </div>
           </div>
+          <div className="w-full my-4">
+            <Textarea
+              isRequired
+              errorMessage="Please enter a valid summary"
+              label="Summary"
+              labelPlacement="outside"
+              name="summary"
+              placeholder="Enter post summary"
+              value={post?.summary || ""}
+            />
+          </div>
+          <div className="w-full my-4">
+            <CKEditorComponent content={post?.description || ""} />
+          </div>
 
-          <Textarea
-            isRequired
-            errorMessage="Please enter a valid summary"
-            label="Summary"
-            labelPlacement="outside"
-            name="summary"
-            placeholder="Enter post summary"
-            value={post?.summary || ""}
-          />
-          <Textarea
-            isRequired
-            errorMessage="Please enter a valid description"
-            label="Description (Main Content)"
-            labelPlacement="outside"
-            name="description"
-            placeholder="Enter post description"
-            value={post?.description || ""}
-          />
           <div className="w-full flex flex-row gap-2">
             <div className="basis-1/5">
               <Dropdown>
