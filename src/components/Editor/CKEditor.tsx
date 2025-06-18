@@ -52,8 +52,8 @@ export default function CKEditorComponent({ content }: { content: string }) {
           },
         }}
       />
-      <h3>Preview:</h3>
-      <div dangerouslySetInnerHTML={{ __html: editorData }} />
+      {/* <h3>Preview:</h3>
+      <div dangerouslySetInnerHTML={{ __html: editorData }} /> */}
     </div>
   );
 }

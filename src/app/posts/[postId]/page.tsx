@@ -8,11 +8,14 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Link,
+  Tooltip,
 } from "@heroui/react";
 import { useState } from "react";
 import posts from "@/data/blog_posts.json";
 import { useParams } from "next/navigation";
 import CKEditorComponent from "@/components/Editor/CKEditor";
+import { BsArrowLeftSquareFill } from "react-icons/bs";
 
 export default function PostsPage() {
   const { postId } = useParams();
@@ -23,7 +26,14 @@ export default function PostsPage() {
     <main className="flex-1 p-8 space-y-10">
       {/* Dashboard Header */}
       <div>
-        <h1 className="text-3xl font-bold">Post : {post?.title}</h1>
+        <h1 className="text-3xl font-bold flex justify-start items-center">
+          <Tooltip content="Back to all posts">
+            <Link href="/posts" color="warning">
+              <BsArrowLeftSquareFill className="w-7 h-7 me-2" />
+            </Link>
+          </Tooltip>
+          {post?.title}
+        </h1>
       </div>
 
       {/* Key Metrics */}
@@ -64,7 +74,7 @@ export default function PostsPage() {
               />
             </div>
           </div>
-          <div className="w-full my-4">
+          <div className="w-full ">
             <Textarea
               isRequired
               errorMessage="Please enter a valid summary"
@@ -75,7 +85,8 @@ export default function PostsPage() {
               value={post?.summary || ""}
             />
           </div>
-          <div className="w-full my-4">
+          <div className="w-full ">
+            <h1 className="text-small">Description</h1>
             <CKEditorComponent content={post?.description || ""} />
           </div>
 
@@ -120,10 +131,10 @@ export default function PostsPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button color="primary" type="submit">
+            <Button color="primary" type="submit" size="lg">
               Submit
             </Button>
-            <Button type="reset" variant="flat">
+            <Button type="reset" variant="flat" size="lg">
               Reset
             </Button>
           </div>
