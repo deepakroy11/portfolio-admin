@@ -3,16 +3,7 @@
 import { Input, Button, Card, CardBody, Divider } from "@heroui/react";
 import { signIn } from "../action/sign-in";
 import { BsGoogle, BsGithub, BsKeyFill } from "react-icons/bs";
-
-export const DiverWithText = ({ text }: { text: string }) => {
-  return (
-    <div className="flex items-center my-4">
-      <div className="flex-grow h-px bg-gray-300" />
-      <span className="px-4 text-sm text-gray-500">{text}</span>
-      <div className="flex-grow h-px bg-gray-300" />
-    </div>
-  );
-};
+import { DiverWithText } from "@/components/common/DividerWithText";
 
 export default function LoginPage() {
   return (
