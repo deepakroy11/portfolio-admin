@@ -2,20 +2,18 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export async function middleware(req: NextRequest) {
-  const session = await auth(req);
+export async function middleware(request: NextRequest) {
+  const session = await auth(); // ✅ No args needed in App Router
 
   const isLoggedIn = !!session;
-  const isAuthPage = req.nextUrl.pathname === "/login";
+  const isLoginPage = request.nextUrl.pathname === "/login";
 
-  // If not logged in and accessing a protected page → redirect to login
-  if (!isLoggedIn && !isAuthPage) {
-    return NextResponse.redirect(new URL("/login", req.url));
+  if (!isLoggedIn && !isLoginPage) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // If logged in and trying to access login → redirect to dashboard
-  if (isLoggedIn && isAuthPage) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+  if (isLoggedIn && isLoginPage) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();

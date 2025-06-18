@@ -28,9 +28,12 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/login",
   },
-  callbacks: {
-    async redirect({ url, baseUrl }) {
-      return "/dashboard";
-    },
-  },
+  // callbacks: {
+  //   authorized: async ({ auth }) => {
+  //     return !!auth;
+  //   },
+  //   async redirect({ url, baseUrl }) {
+  //     return "/dashboard";
+  //   },
+  // },
 });
