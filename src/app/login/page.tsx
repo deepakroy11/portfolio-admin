@@ -44,7 +44,7 @@ export default function LoginPage() {
           <DiverWithText text="or" />
 
           <div className="space-y-2">
-            <form action={signIn}>
+            <form action={() => signIn("github")}>
               <Button
                 type="submit"
                 className="w-full"
@@ -53,7 +53,7 @@ export default function LoginPage() {
                 Sign in with GitHub
               </Button>
             </form>
-            <form action={signIn}>
+            <form action={() => signIn("google")}>
               <Button
                 type="submit"
                 className="w-full"
