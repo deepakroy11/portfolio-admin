@@ -22,9 +22,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     GitHub({ clientId: GITHUB_CLIENT_ID, clientSecret: GITHUB_CLIENT_SECRET }),
     Google({ clientId: GOOGLE_CLIENT_ID, clientSecret: GOOGLE_CLIENT_SECRET }),
   ],
-  session: {
-    strategy: "database",
-  },
   pages: {
     signIn: "/login",
   },
