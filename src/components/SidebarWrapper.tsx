@@ -25,7 +25,7 @@ const SidebarWrapper = () => {
       {/* Admin Panel Title */}
 
       <div className="flex items-center justify-between text-2xl font-bold">
-        <span>Admin Panel</span>
+        <span>Portfolio | Admin Panel</span>
         <Link href="#">
           <BsMoon className="w-5 h-5 inline-flex" />
         </Link>
