@@ -1,19 +1,37 @@
 "use client";
 
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import "./editor.css";
 
 export default function CKEditorComponent({ content }: { content: string }) {
   const [editorData, setEditorData] = useState<string>(content);
+  const [EditorLoaded, setEditorLoaded] = useState(false);
+  const [CKEditor, setCKEditor] = useState<any>(null);
+  const [ClassicEditor, setClassicEditor] = useState<any>(null);
+
+  useEffect(() => {
+    const loadEditor = async () => {
+      const { CKEditor } = await import("@ckeditor/ckeditor5-react");
+      const ClassicEditor = (await import("@ckeditor/ckeditor5-build-classic"))
+        .default;
+      setCKEditor(() => CKEditor);
+      setClassicEditor(() => ClassicEditor);
+      setEditorLoaded(true);
+    };
+
+    loadEditor();
+  }, []);
+
+  if (!EditorLoaded || !CKEditor || !ClassicEditor)
+    return <p>Loading editor...</p>;
 
   return (
     <div>
       <CKEditor
-        editor={ClassicEditor as any}
+        editor={ClassicEditor}
         data={editorData}
-        onChange={(event, editor) => {
+        onChange={(event: any, editor: any) => {
           const data = editor.getData();
           setEditorData(data);
         }}
@@ -34,15 +52,6 @@ export default function CKEditorComponent({ content }: { content: string }) {
             "undo",
             "redo",
           ],
-          //   codeBlock: {
-          //     languages: [
-          //       { language: "plaintext", label: "Plain text" },
-          //       { language: "javascript", label: "JavaScript" },
-          //       { language: "html", label: "HTML" },
-          //       { language: "css", label: "CSS" },
-          //       { language: "python", label: "Python" },
-          //     ],
-          //   },
           image: {
             toolbar: [
               "imageTextAlternative",
@@ -52,8 +61,6 @@ export default function CKEditorComponent({ content }: { content: string }) {
           },
         }}
       />
-      {/* <h3>Preview:</h3>
-      <div dangerouslySetInnerHTML={{ __html: editorData }} /> */}
     </div>
   );
 }
