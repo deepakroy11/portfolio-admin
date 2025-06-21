@@ -8,7 +8,7 @@ import { DiverWithText } from "@/components/common/DividerWithText";
 export default function LoginPage() {
   return (
     <main className="w-full h-screen flex flex-col items-center justify-center bg-base-100 space-y-6">
-      <h1 className="text-4xl font-semibold">Portfolio | Admin Panel</h1>
+      <h1 className="text-4xl">Portfolio | Admin Panel</h1>
 
       <Card className="w-full max-w-md p-6 shadow-lg">
         <CardBody className="space-y-6 text-center">

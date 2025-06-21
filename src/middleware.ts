@@ -3,6 +3,13 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  const authDisabled = process.env.AUTH_DISABLED === "true";
+
+  // Skip auth in local if AUTH_DISABLED is true
+  if (authDisabled) {
+    return NextResponse.next();
+  }
+
   const session = await auth(); // ✅ No args needed in App Router
 
   const isLoggedIn = !!session;

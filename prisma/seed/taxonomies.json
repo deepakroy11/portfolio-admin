@@ -1,0 +1,63 @@
+[
+  {
+    "name": "Category",
+    "values": [
+      "Health",
+      "Personal",
+      "Frontend",
+      "DevOps",
+      "JavaScript",
+      "Productivity",
+      "Technology",
+      "CSS",
+      "Finance"
+    ]
+  },
+  {
+    "name": "Tag",
+    "values": [
+      "css",
+      "budget",
+      "tailwind",
+      "functional programming",
+      "developer life",
+      "nextjs",
+      "big data",
+      "telemedicine",
+      "money management",
+      "frontend",
+      "goals",
+      "fitness",
+      "tools",
+      "tips",
+      "arrays",
+      "well-being",
+      "mental health",
+      "blockchain",
+      "healthcare",
+      "health",
+      "productivity",
+      "exercise",
+      "dark mode",
+      "workflow",
+      "vercel",
+      "ci/cd",
+      "finance",
+      "context api",
+      "deployment",
+      "investment",
+      "javascript",
+      "developer journey",
+      "coding tips",
+      "5G",
+      "technology",
+      "saving money",
+      "cryptocurrency",
+      "innovation",
+      "AI",
+      "connectivity",
+      "introduction",
+      "design systems"
+    ]
+  }
+]

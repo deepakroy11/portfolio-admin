@@ -1,10 +1,10 @@
 import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
-// import { PrismaAdapter } from "@auth/prisma-adapter";
-// import { PrismaClient } from "@prisma/client";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { PrismaClient } from "@prisma/client";
 
-// const prisma = new PrismaClient();
+const prisma = new PrismaClient();
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
@@ -17,14 +17,14 @@ if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
 }
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
-  // adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma),
   providers: [
     GitHub({ clientId: GITHUB_CLIENT_ID, clientSecret: GITHUB_CLIENT_SECRET }),
     Google({ clientId: GOOGLE_CLIENT_ID, clientSecret: GOOGLE_CLIENT_SECRET }),
   ],
-  // session: {
-  //   strategy: "database", // or "jwt" if you prefer
-  // },
+  session: {
+    strategy: "database", // or "jwt" if you prefer
+  },
   pages: {
     signIn: "/login",
   },

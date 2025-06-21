@@ -38,6 +38,15 @@ export default function PostsPage() {
     return () => clearTimeout(timer);
   }, [page, paginatredPosts]);
 
+  useEffect(() => {
+    const getUsers = async () => {
+      const response = await fetch("/api/users");
+      const data = await response.json();
+      console.log(data);
+    };
+    getUsers();
+  }, []);
+
   return (
     <main className="flex-1 p-8 space-y-10">
       {/* Dashboard Header */}

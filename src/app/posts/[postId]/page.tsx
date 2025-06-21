@@ -9,7 +9,7 @@ import {
   Select,
   SelectItem,
 } from "@heroui/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useParams } from "next/navigation";
 import { BsArrowLeftSquareFill } from "react-icons/bs";
 import CKEditorComponent from "@/components/Editor/CKEditor";
@@ -69,7 +69,7 @@ export default function PostsPage() {
           <div>
             <h1 className="text-3xl font-bold flex justify-start items-center">
               <Tooltip content="Back to all posts">
-                <Link href="/posts" color="warning">
+                <Link href="/posts" color="primary">
                   <BsArrowLeftSquareFill className="w-7 h-7 me-2" />
                 </Link>
               </Tooltip>
@@ -157,36 +157,14 @@ export default function PostsPage() {
                     <SelectItem key={tag.key}>{tag.label}</SelectItem>
                   ))}
                 </Select>
-
-                {/* <div className="basis-1/5">
-                  <h6>Category</h6>
-                  <Dropdown>
-                    <DropdownTrigger>
-                      <Button variant="bordered">Select Category</Button>
-                    </DropdownTrigger>
-                    <DropdownMenu aria-label="Categories" items={categoryItems}>
-                      {(item) => (
-                        <DropdownItem key={item.key}>{item.label}</DropdownItem>
-                      )}
-                    </DropdownMenu>
-                  </Dropdown>
-                </div>
-                <div className="basis-1/5">
-                  <h6>Tags</h6>
-                  <Dropdown>
-                    <DropdownTrigger>
-                      <Button variant="bordered">Select Tags</Button>
-                    </DropdownTrigger>
-                    <DropdownMenu aria-label="Tags" items={tagsItems}>
-                      {(item) => (
-                        <DropdownItem key={item.key}>{item.label}</DropdownItem>
-                      )}
-                    </DropdownMenu>
-                  </Dropdown>
-                </div> */}
               </div>
               <div className="flex gap-2">
-                <Button color="primary" type="submit" size="lg">
+                <Button
+                  color="primary"
+                  type="submit"
+                  size="lg"
+                  className="max-w-xs"
+                >
                   Submit
                 </Button>
                 <Button type="reset" variant="flat" size="lg">
