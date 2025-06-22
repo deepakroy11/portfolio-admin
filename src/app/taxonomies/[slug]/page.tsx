@@ -14,8 +14,16 @@ import {
 import { BsArrowLeftSquareFill } from "react-icons/bs";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import type { TaxonomyMeta } from "@prisma/client";
 import Link from "next/link";
+import { DateTime } from "next-auth/providers/kakao";
+
+interface TaxonomyMeta {
+  id: string;
+  name: string;
+  slug: string;
+  taxonomyId: string;
+  createdAt: DateTime;
+}
 
 type TaxonomyWithMetasProps = {
   id: string;
@@ -71,7 +79,7 @@ const TaxonomyMetaPage = () => {
         <TableBody
           emptyContent="No meta data is available."
           isLoading={isLoading}
-          items={taxonomyWithMetas?.metas ?? []} // ✅ safe fallback
+          items={taxonomyWithMetas?.metas ?? []}
           loadingContent={<Spinner label="Loading..." />}
         >
           {(taxonomyWithMetas?.metas ?? []).map((item, index) => (

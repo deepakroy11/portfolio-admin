@@ -10,9 +10,11 @@ import {
   TableHeader,
   TableBody,
   Spinner,
+  Tooltip,
 } from "@heroui/react";
 import type { Taxonomy } from "@prisma/client";
 import { useEffect, useState } from "react";
+import { BsArrowUpRightSquareFill } from "react-icons/bs";
 
 export default function TaxonomyAddPage() {
   const [taxonomies, setTaxonomies] = useState<Taxonomy[]>([]); // start with an empty array to prevent `.map()` on undefined
@@ -55,9 +57,13 @@ export default function TaxonomyAddPage() {
             <TableRow key={item.id}>
               <TableCell>{index + 1}</TableCell>
               <TableCell>
-                <Link href={`taxonomies/${item.slug}`} color="foreground">
-                  {item.name}
-                </Link>
+                <Tooltip content={`To add meta value click here.`}>
+                  <Link href={`taxonomies/${item.slug}`} color="foreground">
+                    {item.name}
+
+                    <BsArrowUpRightSquareFill className="w-3 h-3 ms-2" />
+                  </Link>
+                </Tooltip>
               </TableCell>
               <TableCell>{item.slug}</TableCell>
               <TableCell>

@@ -9,60 +9,98 @@ import {
   Select,
   SelectItem,
 } from "@heroui/react";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { BsArrowLeftSquareFill } from "react-icons/bs";
 import CKEditorComponent from "@/components/Editor/CKEditor";
 
 import PostFormSkeleton from "@/components/skeltons/PostFormSkelton";
-import posts from "@/data/blog_posts.json";
-import postMeta from "@/data/extracted_data.json";
 
-const categoryItems = postMeta?.categories?.map((category) => ({
-  key: category,
-  label: category,
-}));
+interface TaxonomyMeta {
+  id: string;
+  name: string;
+  slug: string;
+}
 
-const tagsItems = postMeta?.tags?.map((tag) => ({ key: tag, label: tag }));
+interface User {
+  id: string;
+  name: string;
+}
 
-type PostProps = {
+interface PostWithData {
+  id: string;
   slug: string;
   title: string;
-  description: string;
   summary: string;
-  date: string;
-  image: string;
-  category: string;
-  tags: string[];
-  author: string;
-};
+  content: string;
+  user: User;
+  tags: TaxonomyMeta[];
+  category: TaxonomyMeta[];
+}
 
 export default function PostsPage() {
-  const { postId } = useParams();
-  const [post, setPost] = useState<PostProps | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { slug } = useParams();
+
+  const [post, setPost] = useState<PostWithData | null>(null);
+  const [postLoading, setPostLoading] = useState(false);
+
+  const [categories, setCategories] = useState<TaxonomyMeta[] | null>(null);
+  const [tags, setTags] = useState<TaxonomyMeta[] | null>(null);
+  const [loading, setLoading] = useState({ category: true, tags: true });
+
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [selectedCategory, setSelectedCategory] = useState<Set<string>>(
+    new Set()
+  );
+
   const [action, setAction] = useState<string | null>(null);
-  const [selectedCategory, setCategory] = useState<Set<string>>(new Set());
-  const [selectedTags, setTags] = useState<Set<string>>(new Set());
-  console.log(selectedTags);
 
   useEffect(() => {
-    if (postId) {
-      const foundPost = posts.find((p): p is PostProps => p.slug === postId);
-      if (foundPost) {
-        setPost(foundPost);
-        setCategory(new Set([foundPost.category]));
-        setTags(new Set(foundPost.tags));
-      } else {
-        setPost(null); // explicitly handle undefined case
+    const getPost = async () => {
+      try {
+        setPostLoading(true);
+        const response = await fetch(`/api/post/${slug}`);
+        const data = await response.json();
+        setPost(data.post);
+        setSelectedCategory(
+          new Set(data.post.category.map((cat: TaxonomyMeta) => cat.slug))
+        );
+        setSelectedTags(
+          new Set(data.post.tags.map((tag: TaxonomyMeta) => tag.slug))
+        );
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setPostLoading(false);
       }
-      setTimeout(() => setLoading(false), 500); // simulate loading
+    };
+    if (slug) {
+      getPost();
     }
-  }, [postId]);
+  }, [slug]);
+
+  useEffect(() => {
+    async function fetchTaxonomy(
+      endPoint: string,
+      setData: (data: TaxonomyMeta[]) => void,
+      key: keyof typeof loading
+    ) {
+      try {
+        const response = await fetch(endPoint);
+        const jsonData = await response.json();
+        setData(jsonData?.metas || []);
+      } catch (error: any) {
+      } finally {
+        setLoading((prev) => ({ ...prev, [key]: false }));
+      }
+    }
+    fetchTaxonomy("/api/taxonomy/category", setCategories, "category");
+    fetchTaxonomy("/api/taxonomy/tags", setTags, "tags");
+  }, []);
 
   return (
     <main className="flex-1 p-8 space-y-10">
-      {loading ? (
+      {postLoading ? (
         <PostFormSkeleton />
       ) : (
         <>
@@ -126,8 +164,8 @@ export default function PostsPage() {
                 />
               </div>
               <div className="w-full ">
-                <h1 className="text-small">Description</h1>
-                <CKEditorComponent content={post?.description || ""} />
+                <h1 className="text-small">Content</h1>
+                <CKEditorComponent content={post?.content || ""} />
               </div>
 
               <div className="w-full flex flex-row gap-2">
@@ -138,11 +176,11 @@ export default function PostsPage() {
                   selectionMode="single"
                   selectedKeys={selectedCategory}
                   onSelectionChange={(keys) =>
-                    setCategory(new Set(keys as string))
+                    setSelectedCategory(new Set(keys as string))
                   }
                 >
-                  {categoryItems.map((cat) => (
-                    <SelectItem key={cat.key}>{cat.label}</SelectItem>
+                  {(categories ?? []).map((category) => (
+                    <SelectItem key={category.slug}>{category.name}</SelectItem>
                   ))}
                 </Select>
                 <Select
@@ -151,10 +189,12 @@ export default function PostsPage() {
                   label="Select tags"
                   selectionMode="multiple"
                   selectedKeys={selectedTags}
-                  onSelectionChange={(keys) => setTags(new Set(keys as string))}
+                  onSelectionChange={(keys) =>
+                    setSelectedTags(new Set(keys as string))
+                  }
                 >
-                  {tagsItems.map((tag) => (
-                    <SelectItem key={tag.key}>{tag.label}</SelectItem>
+                  {(tags ?? []).map((tag) => (
+                    <SelectItem key={tag.slug}>{tag.name}</SelectItem>
                   ))}
                 </Select>
               </div>

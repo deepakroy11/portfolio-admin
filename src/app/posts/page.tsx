@@ -7,143 +7,143 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Pagination,
   Dropdown,
   DropdownMenu,
   DropdownItem,
   DropdownTrigger,
+  Spinner,
+  Chip,
 } from "@heroui/react";
-import posts from "@/data/blog_posts.json";
+
 import Link from "next/link";
 import { BsTags, BsThreeDotsVertical } from "react-icons/bs";
 import { useMemo, useState, useEffect } from "react";
-import PostsTableSkeleton from "@/components/skeltons/PostTableSkelton";
+
+interface TaxonomyMeta {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+}
+
+interface PostWithData {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  user: User;
+  tags: TaxonomyMeta[];
+  category: TaxonomyMeta[];
+}
 
 export default function PostsPage() {
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const postPerPage = 8;
-  const pages = Math.ceil(posts.length / postPerPage);
-
-  const paginatredPosts = useMemo(() => {
-    const start = (page - 1) * postPerPage;
-    const end = start + postPerPage;
-
-    return posts.slice(start, end);
-  }, [page, posts]);
+  const [posts, setPosts] = useState<PostWithData[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  console.log(posts);
 
   useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 1000); // simulate loading delay
-    return () => clearTimeout(timer);
-  }, [page, paginatredPosts]);
+    const getPost = async () => {
+      try {
+        const response = await fetch("/api/post");
+        const data = await response.json();
 
-  useEffect(() => {
-    const getUsers = async () => {
-      const response = await fetch("/api/users");
-      const data = await response.json();
-      console.log(data);
+        setPosts(data.posts ?? []);
+      } catch (error) {
+        console.error("Failed to fetch posts", error);
+      } finally {
+        setLoading(false);
+      }
     };
-    getUsers();
+    getPost();
   }, []);
 
   return (
     <main className="flex-1 p-8 space-y-10">
       {/* Dashboard Header */}
-      <div>
+      <div className="flex justify-between">
         <h1 className="text-3xl font-bold">All Posts</h1>
-        <p className="text-muted-foreground mt-1">
-          Welcome back, Deepak! Here’s a quick overview of your site's
-          performance.
-        </p>
+        <Button as={Link} href="/posts/add">
+          Add New Post
+        </Button>
       </div>
 
       {/* Key Metrics */}
       <section>
         <h2 className="text-xl font-semibold mb-4">All Posts</h2>
 
-        {loading ? (
-          <PostsTableSkeleton />
-        ) : (
-          <Table
-            aria-label="collection table"
-            isCompact
-            bottomContent={
-              <div className="flex w-full justify-center">
-                <Pagination
-                  isCompact
-                  showControls
-                  showShadow
-                  color="secondary"
-                  page={page}
-                  total={pages}
-                  onChange={(page) => setPage(page)}
-                />
-              </div>
-            }
+        <Table aria-label="collection table" isCompact>
+          <TableHeader>
+            <TableColumn>SL</TableColumn>
+            <TableColumn>Title</TableColumn>
+            <TableColumn>Summary</TableColumn>
+            <TableColumn>Category</TableColumn>
+            <TableColumn>Author</TableColumn>
+            <TableColumn>Tags</TableColumn>
+            <TableColumn>Actions</TableColumn>
+          </TableHeader>
+
+          <TableBody
+            emptyContent="No posts available."
+            isLoading={loading}
+            items={posts ?? []}
+            loadingContent={<Spinner label="Loading..." />}
           >
-            <TableHeader>
-              <TableColumn>ID</TableColumn>
-              <TableColumn>Title</TableColumn>
-              <TableColumn>Summary</TableColumn>
-              <TableColumn>Category</TableColumn>
-              <TableColumn>Author</TableColumn>
-              <TableColumn>Tags</TableColumn>
-              <TableColumn>Actions</TableColumn>
-            </TableHeader>
+            {(posts ?? []).map((post, index) => (
+              <TableRow key={post.slug}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell>
+                  <Link href={`/posts/${post.slug}`} color="secondary">
+                    {post.title}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <div className="truncate max-w-xs">{post.summary}</div>
+                </TableCell>
 
-            <TableBody>
-              {paginatredPosts.map((post, index) => (
-                <TableRow key={post.slug} className="border-b">
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>
-                    <Link href={`/posts/${post.slug}`} color="secondary">
-                      {post.title}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <div className="truncate max-w-xs">{post.summary}</div>
-                  </TableCell>
+                <TableCell>
+                  <Link href={`#`} color="secondary">
+                    <Chip>
+                      {post.category.map((cat) => cat.name).join(",")}
+                    </Chip>
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <Link href={`#`} color="secondary">
+                    {post.user.name}
+                  </Link>
+                </TableCell>
 
-                  <TableCell>
-                    <Link href={`#`} color="secondary">
-                      {post.category}
+                <TableCell>
+                  {post.tags.map((tag) => (
+                    <Link href={`#`} color="secondary" className="me-1">
+                      <Chip>{tag.name}</Chip>
                     </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link href={`#`} color="secondary">
-                      {post.author}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    {post.tags.map((tag) => (
-                      <span key={tag} className="flex items-center gap-1">
-                        <BsTags />
-                        <Link href="#">{tag}</Link>
-                      </span>
-                    ))}
-                  </TableCell>
-                  <TableCell>
-                    <div className="relative flex justify-end  gap-2">
-                      <Dropdown>
-                        <DropdownTrigger>
-                          <Button size="sm" variant="light">
-                            <BsThreeDotsVertical className="h-5 w-5" />
-                          </Button>
-                        </DropdownTrigger>
-                        <DropdownMenu>
-                          <DropdownItem key="view">View</DropdownItem>
-                          <DropdownItem key="edit">Edit</DropdownItem>
-                          <DropdownItem key="delete">Delete</DropdownItem>
-                        </DropdownMenu>
-                      </Dropdown>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+                  ))}
+                </TableCell>
+                <TableCell>
+                  <div className="relative flex justify-end  gap-2">
+                    <Dropdown>
+                      <DropdownTrigger>
+                        <Button size="sm" variant="light">
+                          <BsThreeDotsVertical className="h-5 w-5" />
+                        </Button>
+                      </DropdownTrigger>
+                      <DropdownMenu>
+                        <DropdownItem key="view">View</DropdownItem>
+                        <DropdownItem key="edit">Edit</DropdownItem>
+                        <DropdownItem key="delete">Delete</DropdownItem>
+                      </DropdownMenu>
+                    </Dropdown>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </section>
     </main>
   );

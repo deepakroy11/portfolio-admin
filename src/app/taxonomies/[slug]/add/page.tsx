@@ -58,7 +58,7 @@ const TaxonomyMetaPage = ({
             value={slug}
             isRequired
           />
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading} isLoading={isLoading}>
             {isLoading ? "Saving..." : "Save"}
           </Button>
           {formState?.error && <Alert color="danger" title={formState.error} />}
