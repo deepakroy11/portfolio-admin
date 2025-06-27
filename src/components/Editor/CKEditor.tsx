@@ -4,8 +4,13 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import "./editor.css";
 
-export default function CKEditorComponent({ content }: { content: string }) {
-  const [editorData, setEditorData] = useState<string>(content);
+export default function CKEditorComponent({
+  content,
+  onChange,
+}: {
+  content: string;
+  onChange: (event: any, editor: any) => void;
+}) {
   const [EditorLoaded, setEditorLoaded] = useState(false);
   const [CKEditor, setCKEditor] = useState<any>(null);
   const [ClassicEditor, setClassicEditor] = useState<any>(null);
@@ -30,11 +35,8 @@ export default function CKEditorComponent({ content }: { content: string }) {
     <div>
       <CKEditor
         editor={ClassicEditor}
-        data={editorData}
-        onChange={(event: any, editor: any) => {
-          const data = editor.getData();
-          setEditorData(data);
-        }}
+        data={content}
+        onChange={onChange}
         config={{
           toolbar: [
             "heading",
