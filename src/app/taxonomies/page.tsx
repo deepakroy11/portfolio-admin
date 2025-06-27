@@ -14,7 +14,12 @@ import {
 } from "@heroui/react";
 import type { Taxonomy } from "@prisma/client";
 import { useEffect, useState } from "react";
-import { BsArrowUpRightSquareFill } from "react-icons/bs";
+import {
+  BsArrowUpRightSquareFill,
+  BsEye,
+  BsPencilSquare,
+  BsTrash3,
+} from "react-icons/bs";
 
 export default function TaxonomyAddPage() {
   const [taxonomies, setTaxonomies] = useState<Taxonomy[]>([]); // start with an empty array to prevent `.map()` on undefined
@@ -46,6 +51,7 @@ export default function TaxonomyAddPage() {
           <TableColumn>Name</TableColumn>
           <TableColumn>Slug</TableColumn>
           <TableColumn>Created At</TableColumn>
+          <TableColumn>Actions</TableColumn>
         </TableHeader>
         <TableBody
           emptyContent="No rows to display."
@@ -68,6 +74,22 @@ export default function TaxonomyAddPage() {
               <TableCell>{item.slug}</TableCell>
               <TableCell>
                 {new Date(item.createdAt).toLocaleDateString()}
+              </TableCell>
+              <TableCell>
+                <div className="flex justify-start space-x-2.5">
+                  <Link href="#" className="border-e-1 pe-2">
+                    <BsEye className="w-5 h-5 text-success-900" />
+                  </Link>
+                  <Link
+                    href={`taxonomies/${item.slug}`}
+                    className="border-e-1 pe-2"
+                  >
+                    <BsPencilSquare className="w-5 h-5 text-blue-900" />
+                  </Link>
+                  <Link href="#">
+                    <BsTrash3 className="w-5 h-5 text-danger" />
+                  </Link>
+                </div>
               </TableCell>
             </TableRow>
           ))}

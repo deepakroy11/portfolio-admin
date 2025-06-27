@@ -10,8 +10,9 @@ import {
   TableRow,
   Button,
   Tooltip,
+  Chip,
 } from "@heroui/react";
-import { BsArrowLeftSquareFill } from "react-icons/bs";
+import { BsArrowLeftSquareFill, BsPencilSquare } from "react-icons/bs";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -38,7 +39,7 @@ const TaxonomyMetaPage = () => {
   const [taxonomyWithMetas, setTaxonomyWithMetas] =
     useState<TaxonomyWithMetasProps | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  console.log(taxonomyWithMetas);
+  // console.log(taxonomyWithMetas);
 
   useEffect(() => {
     const getTaxonomyMeta = async () => {
@@ -55,13 +56,18 @@ const TaxonomyMetaPage = () => {
   return (
     <main className="flex-1 p-8 space-y-10">
       <div className="flex justify-between">
-        <h1 className="text-2xl capitalize flex items-center justify-start">
+        <h1 className="text-2xl capitalize flex items-center justify-start space-x-2">
           <Tooltip content="Back to all taxonomies">
             <Link href="/taxonomies">
               <BsArrowLeftSquareFill className="w-6 h-6 me-2" />
             </Link>
           </Tooltip>
-          <strong>Taxonomy: </strong> {slug}
+          <strong>Taxonomy: </strong> {slug}{" "}
+          {taxonomyWithMetas?.metas && (
+            <Chip radius="full" variant="shadow" className="ms-2">
+              {taxonomyWithMetas?.metas.length}
+            </Chip>
+          )}
         </h1>
         <Button as={Link} href={`/taxonomies/${slug}/add`}>
           Add Meta Data for <strong className="capitalize">{slug}</strong>
@@ -91,7 +97,9 @@ const TaxonomyMetaPage = () => {
                 {new Date(item.createdAt).toLocaleDateString()}
               </TableCell>
               <TableCell>
-                <Button>Edit</Button>
+                <Link href={`#`}>
+                  <BsPencilSquare className="w-5 h-5" />
+                </Link>
               </TableCell>
             </TableRow>
           ))}
