@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "BasicDetails" ALTER COLUMN "siteName" DROP NOT NULL,
+ALTER COLUMN "tagLine" DROP NOT NULL,
+ALTER COLUMN "aboutMe" DROP NOT NULL,
+ALTER COLUMN "contactEmail" DROP NOT NULL;
