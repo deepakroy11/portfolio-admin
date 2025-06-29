@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import {
   Button,
   Link,
@@ -22,17 +24,73 @@ import {
 import { useDisclosure } from "@heroui/react";
 import { BsPencilSquare } from "react-icons/bs";
 import type { Skill } from "@prisma/client";
+import { useRef, useState } from "react";
 
 interface skillsProps {
   skills: Skill[];
 }
 
 const Skills = ({ skills }: skillsProps) => {
+  const router = useRouter();
+
   const {
     isOpen: isSkilltModalOpen,
     onOpen: onSkillModalOpen,
     onOpenChange: onSkillModalChange,
   } = useDisclosure();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const skillImgRef = useRef<HTMLInputElement>(null);
+  const [skillImgPreview, setSkillImgPreview] = useState<string>("");
+  const [skillImage, setSkillImage] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  // Image/Logo Upload
+  const triggerSkillFile = () => {
+    skillImgRef.current?.click();
+  };
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSkillImage(file);
+      setSkillImgPreview(URL.createObjectURL(file));
+    }
+  };
+
+  // Handle Form Submit
+  const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget; // reference to the form
+    setIsLoading(true);
+
+    const formData = new FormData(event.currentTarget);
+    if (skillImage) formData.append("skillImage", skillImage);
+
+    try {
+      const response = await fetch("/api/settings/skill", {
+        method: "POST",
+        body: formData,
+      });
+      console.log(response);
+      const result = response.json();
+      if (response.ok) {
+        setSuccess("Skill saved successfully.");
+
+        form.reset();
+        setSkillImage(null);
+        setSkillImgPreview("");
+        setTimeout(() => setSuccess(null), 3000);
+        router.refresh();
+      }
+    } catch (error) {
+      console.log(error);
+      setError("Unable to save. Please try after sometime");
+      setTimeout(() => setError(null), 3000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -42,7 +100,7 @@ const Skills = ({ skills }: skillsProps) => {
           New Skill
         </Button>
       </div>
-      <Table>
+      <Table isVirtualized maxTableHeight={400} rowHeight={50}>
         <TableHeader>
           <TableColumn>SL</TableColumn>
           <TableColumn>Title</TableColumn>
@@ -51,7 +109,7 @@ const Skills = ({ skills }: skillsProps) => {
         </TableHeader>
         <TableBody>
           {skills.map((skill, index) => (
-            <TableRow>
+            <TableRow className="items-center">
               <TableCell>{index + 1}</TableCell>
               <TableCell>{skill.title}</TableCell>
               <TableCell className="">
@@ -82,41 +140,53 @@ const Skills = ({ skills }: skillsProps) => {
                 New Skill
               </ModalHeader>
               <ModalBody>
-                <Form className="space-y-4">
+                <Form className="space-y-4" onSubmit={handleFormSubmit}>
                   <Input
-                    label="Project Skill"
+                    label="Skill Title"
+                    name="skill-title"
                     labelPlacement="outside"
-                    placeholder="Enter skill name"
+                    placeholder="Enter skill title"
                     isRequired
                   />
                   <Textarea
-                    label="Project Skill"
+                    label="Skill Summary"
+                    name="skill-summary"
                     labelPlacement="outside"
                     placeholder="Enter skill summary"
                     isRequired
                   />
+                  <div className="w-full flex justify-start p-2 bg-primary-100 rounded-2xl items-center space-x-4">
+                    <Button onPress={triggerSkillFile}>
+                      Upload SKill Logo
+                    </Button>
+                    {skillImgPreview != "" && (
+                      <Image
+                        src={skillImgPreview}
+                        width={100}
+                        className="shadow p-2"
+                      />
+                    )}
+                  </div>
                   <Input
                     type="file"
-                    label="Skill Logo"
-                    labelPlacement="outside"
-                    placeholder="Enter Skill Logo"
-                    isRequired
+                    name="skill-image"
+                    ref={skillImgRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileChange}
                   />
-                  <Alert
-                    color="success"
-                    variant="faded"
-                    title="Lorem Ipsum Dollar!"
-                  />
-                  <Alert
-                    color="danger"
-                    variant="faded"
-                    title="Lorem Ipsum Dollar!"
-                  />
+                  {success && (
+                    <Alert color="success" variant="faded" title={success} />
+                  )}
+                  {error && (
+                    <Alert color="danger" variant="faded" title={error} />
+                  )}
+
                   <div className="w-full flex justify-end space-x-2">
                     <Button color="danger" variant="light" onPress={onClose}>
                       Close
                     </Button>
-                    <Button type="submit" color="primary" isLoading={true}>
+                    <Button type="submit" color="primary" isLoading={isLoading}>
                       Save Skill
                     </Button>
                   </div>

@@ -32,13 +32,13 @@ export default async function SettingPage() {
             id="basic-details"
             className="flex flex-col shadow dark:shadow-primary p-4 rounded-2xl w-full max-w-2xl space-y-6"
           >
-            <Projects projects={projects} />
+            <Skills skills={skills} />
           </section>
           <section
             id="basic-details"
             className="flex flex-col shadow dark:shadow-primary p-4 rounded-2xl w-full max-w-2xl space-y-6"
           >
-            <Skills skills={skills} />
+            <Projects projects={projects} skills={skills} />
           </section>
         </div>
         <div className="w-full">

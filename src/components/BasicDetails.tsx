@@ -146,7 +146,12 @@ const BasicDetails = ({ details }: { details: BasicDetails }) => {
       {success && <Alert color="success" title={success} />}
       {error && <Alert color="danger" title={error} />}
       <div className="w-full">
-        <Button type="submit" className="w-full" isLoading={isLoading}>
+        <Button
+          type="submit"
+          color="primary"
+          className="w-full"
+          isLoading={isLoading}
+        >
           Save
         </Button>
       </div>
