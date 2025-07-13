@@ -13,11 +13,13 @@ import {
 } from "@heroui/react";
 import { BsBell, BsBoxArrowRight } from "react-icons/bs";
 import { useSession, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
 
 const TopBar = () => {
   const { data: session } = useSession();
+  const pathname = usePathname();
 
-  if (!session) return null;
+  if (!session || pathname === "/login") return null;
 
   return (
     <Navbar className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

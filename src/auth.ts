@@ -55,16 +55,18 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     error: "/login",
   },
   callbacks: {
-    authorized: async ({ auth }) => {
-      return !!auth;
-    },
     async redirect({ url, baseUrl }) {
+      // Always redirect to dashboard after successful sign in
+      if (url === baseUrl) return `${baseUrl}/dashboard`;
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      else if (new URL(url).origin === baseUrl) return url;
+      if (new URL(url).origin === baseUrl) return url;
       return `${baseUrl}/dashboard`;
     },
-    async signIn({ user, account, profile }) {
-      return true;
+    async session({ session, user }) {
+      if (session.user) {
+        session.user.id = user.id;
+      }
+      return session;
     },
   },
   debug: process.env.NODE_ENV === "development",
