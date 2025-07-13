@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
 import SidebarWrapper from "@/components/SidebarWrapper";
 import SessionWrapper from "@/components/SessionWrapper";
+import TopBar from "@/components/TopBar";
 import { ThemeProvider } from "@/context/themeProvider";
 
 const geistSans = Geist({
@@ -32,9 +33,14 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <SessionWrapper>
-            <div className="min-h-screen flex text-base-content">
+            <div className="min-h-screen flex bg-background">
               <SidebarWrapper />
-              {children}
+              <div className="flex-1 flex flex-col">
+                <TopBar />
+                <main className="flex-1 overflow-auto">
+                  {children}
+                </main>
+              </div>
             </div>
           </SessionWrapper>
         </ThemeProvider>

@@ -1,88 +1,116 @@
-import { Card, CardHeader } from "@heroui/react";
+import { Card, CardHeader, CardBody } from "@heroui/react";
+import { getDashboardStats, getRecentPosts, getRecentUsers } from "@/db/queries/dashboard";
+import { BsFileText, BsPeople, BsTags, BsFolder } from "react-icons/bs";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const stats = await getDashboardStats();
+  const recentPosts = await getRecentPosts();
+  const recentUsers = await getRecentUsers();
+
+  const metrics = [
+    {
+      title: "Total Posts",
+      value: stats.postsCount,
+      icon: BsFileText,
+    },
+    {
+      title: "Total Users",
+      value: stats.usersCount,
+      icon: BsPeople,
+    },
+    {
+      title: "Taxonomies",
+      value: stats.taxonomiesCount,
+      icon: BsTags,
+    },
+    {
+      title: "Projects",
+      value: stats.projectsCount,
+      icon: BsFolder,
+    },
+  ];
+
   return (
-    <main className="flex-1 p-8 space-y-10">
-      {/* Dashboard Header */}
+    <main className="p-8 space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Welcome back, Deepak! Here’s a quick overview of your site's
-          performance.
+        <p className="text-default-500 mt-1">
+          Welcome back! Here's an overview of your portfolio.
         </p>
       </div>
 
-      {/* Key Metrics */}
       <section>
         <h2 className="text-xl font-semibold mb-4">Key Metrics</h2>
-        <div className="flex flex-col md:flex-row gap-6">
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-medium">Total Posts</h3>
-            </CardHeader>
-            <div className="p-4">
-              <p className="text-3xl font-bold">42</p>
-            </div>
-          </Card>
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-medium">Total Users</h3>
-            </CardHeader>
-            <div className="p-4">
-              <p className="text-3xl font-bold">128</p>
-            </div>
-          </Card>
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-medium">Page Views</h3>
-            </CardHeader>
-            <div className="p-4">
-              <p className="text-3xl font-bold">3.2K</p>
-            </div>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {metrics.map(({ title, value, icon: Icon }) => (
+            <Card key={title}>
+              <CardBody className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-default-500">{title}</p>
+                    <p className="text-3xl font-bold">{value}</p>
+                  </div>
+                  <Icon className="h-8 w-8 text-default-400" />
+                </div>
+              </CardBody>
+            </Card>
+          ))}
         </div>
       </section>
 
-      {/* Recent Activity */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-        <Card>
-          <div className="max-h-64 overflow-y-auto">
-            <ul className="divide-y mb-2 divide-border">
-              {[
-                {
-                  user: "John Doe",
-                  action: "published a new post",
-                  time: "10 minutes ago",
-                },
-                {
-                  user: "Jane Smith",
-                  action: "updated a user profile",
-                  time: "30 minutes ago",
-                },
-                {
-                  user: "System",
-                  action: "reported a new comment pending review",
-                  time: "1 hour ago",
-                },
-              ].map((activity, index) => (
-                <li
-                  key={index}
-                  className="p-4 hover:bg-muted transition-colors rounded"
-                >
-                  <p>
-                    <span className="font-medium">{activity.user}</span>{" "}
-                    {activity.action}.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {activity.time}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Card>
-      </section>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <section>
+          <h2 className="text-xl font-semibold mb-4">Recent Posts</h2>
+          <Card>
+            <CardBody>
+              {recentPosts.length > 0 ? (
+                <div className="space-y-4">
+                  {recentPosts.map((post) => (
+                    <div key={post.id} className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium">{post.title}</h3>
+                        <p className="text-sm text-default-500">
+                          By {post.user?.name || "Unknown"}
+                        </p>
+                      </div>
+                      <span className="text-xs text-default-400">
+                        {new Date(post.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-default-500">No posts yet</p>
+              )}
+            </CardBody>
+          </Card>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold mb-4">Recent Users</h2>
+          <Card>
+            <CardBody>
+              {recentUsers.length > 0 ? (
+                <div className="space-y-4">
+                  {recentUsers.map((user) => (
+                    <div key={user.id} className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-medium">{user.name || "Unnamed User"}</h3>
+                        <p className="text-sm text-default-500">{user.email}</p>
+                      </div>
+                      <span className="text-xs text-default-400">
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-default-500">No users yet</p>
+              )}
+            </CardBody>
+          </Card>
+        </section>
+      </div>
     </main>
   );
 }

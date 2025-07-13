@@ -1,4 +1,4 @@
-import { Navbar, NavbarContent, NavbarItem, Link } from "@heroui/react";
+import { Link } from "@heroui/react";
 import {
   BsFileText,
   BsGear,
@@ -12,27 +12,27 @@ const menuItems = [
   {
     href: "/dashboard",
     label: "Dashboard",
-    icon: <BsFileText className="h-5 w-5 mr-2" />,
+    icon: BsFileText,
   },
   {
     href: "/taxonomies",
     label: "Taxonomies",
-    icon: <BsTags className="h-5 w-5 mr-2" />,
+    icon: BsTags,
   },
   {
     href: "/posts",
     label: "Posts",
-    icon: <BsJournal className="h-5 w-5 mr-2" />,
+    icon: BsJournal,
   },
   {
     href: "/users",
     label: "Users",
-    icon: <BsPeople className="h-5 w-5 mr-2" />,
+    icon: BsPeople,
   },
   {
     href: "/settings",
     label: "Settings",
-    icon: <BsGear className="h-5 w-5 mr-2" />,
+    icon: BsGear,
   },
 ];
 
@@ -40,29 +40,27 @@ const SideNavbar = () => {
   const pathname = usePageCheck();
 
   return (
-    <div className="flex flex-col justify-center w-full">
-      <h2 className="text-bold justify-center py-2 inline-block">Menu</h2>
-      <Navbar className="h-screen flex flex-col justify-between bg-base-200">
-        <NavbarContent className="flex flex-col gap-4">
-          {menuItems.map(({ href, label, icon }) => (
-            <NavbarItem
+    <nav className="p-4">
+      <div className="space-y-1">
+        {menuItems.map(({ href, label, icon: Icon }) => {
+          const isActive = pathname.startsWith(href);
+          return (
+            <Link
               key={href}
-              className="w-full flex justify-start"
-              isActive={pathname.startsWith(href)}
+              href={href}
+              className={`flex items-center gap-3 px-3 py-2 rounded-2xl text-sm font-medium transition-colors ${
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-default-100"
+              }`}
             >
-              <Link
-                color="foreground"
-                href={href}
-                className="flex items-center"
-              >
-                {icon}
-                {label}
-              </Link>
-            </NavbarItem>
-          ))}
-        </NavbarContent>
-      </Navbar>
-    </div>
+              <Icon className="h-5 w-5" />
+              {label}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
   );
 };
 

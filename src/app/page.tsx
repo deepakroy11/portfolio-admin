@@ -1,7 +1,5 @@
-// File: app/page.tsx
 import { redirect } from "next/navigation";
-import React from "react";
 
 export default function Home() {
-  return <h1>Home Page</h1>;
+  redirect("/dashboard");
 }
