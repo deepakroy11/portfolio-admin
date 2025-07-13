@@ -1,7 +1,7 @@
 "use client";
 
 import { Input, Button, Card, CardBody, Divider } from "@heroui/react";
-import { signIn } from "../action/sign-in";
+import { signIn } from "next-auth/react";
 import { BsGoogle, BsGithub, BsKeyFill } from "react-icons/bs";
 import { DiverWithText } from "@/components/common/DividerWithText";
 
@@ -44,24 +44,20 @@ export default function LoginPage() {
           <DiverWithText text="or" />
 
           <div className="space-y-2">
-            <form action={() => signIn("github")}>
-              <Button
-                type="submit"
-                className="w-full"
-                startContent={<BsGithub className="w-5 h-5" />}
-              >
-                Sign in with GitHub
-              </Button>
-            </form>
-            <form action={() => signIn("google")}>
-              <Button
-                type="submit"
-                className="w-full"
-                startContent={<BsGoogle className="w-5 h-5" />}
-              >
-                Sign in with Google
-              </Button>
-            </form>
+            <Button
+              className="w-full"
+              startContent={<BsGithub className="w-5 h-5" />}
+              onPress={() => signIn("github", { callbackUrl: "/dashboard" })}
+            >
+              Sign in with GitHub
+            </Button>
+            <Button
+              className="w-full"
+              startContent={<BsGoogle className="w-5 h-5" />}
+              onPress={() => signIn("google", { callbackUrl: "/dashboard" })}
+            >
+              Sign in with Google
+            </Button>
           </div>
         </CardBody>
       </Card>

@@ -30,11 +30,21 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   providers: [
     GitHub({ 
       clientId: GITHUB_CLIENT_ID, 
-      clientSecret: GITHUB_CLIENT_SECRET 
+      clientSecret: GITHUB_CLIENT_SECRET,
+      authorization: {
+        params: {
+          scope: "read:user user:email"
+        }
+      }
     }),
     Google({ 
       clientId: GOOGLE_CLIENT_ID, 
-      clientSecret: GOOGLE_CLIENT_SECRET 
+      clientSecret: GOOGLE_CLIENT_SECRET,
+      authorization: {
+        params: {
+          scope: "openid email profile"
+        }
+      }
     }),
   ],
   session: {
@@ -42,6 +52,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   },
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   callbacks: {
     authorized: async ({ auth }) => {
@@ -52,6 +63,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       else if (new URL(url).origin === baseUrl) return url;
       return `${baseUrl}/dashboard`;
     },
+    async signIn({ user, account, profile }) {
+      return true;
+    },
   },
   debug: process.env.NODE_ENV === "development",
+  trustHost: true,
 });

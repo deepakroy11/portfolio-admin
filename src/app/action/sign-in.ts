@@ -1,6 +1,12 @@
 "use server";
-import * as auth from "@/auth";
+import { signIn as authSignIn } from "@/auth";
+import { redirect } from "next/navigation";
 
-export async function signIn(agent: string) {
-  return auth.signIn(agent, { redirectTo: "/dashboard" });
+export async function signIn(provider: string) {
+  try {
+    await authSignIn(provider, { redirectTo: "/dashboard" });
+  } catch (error) {
+    console.error("Sign in error:", error);
+    throw error;
+  }
 }
