@@ -1,10 +1,62 @@
 # Portfolio Admin
 
-This is a [Next.js](https://nextjs.org) application.
+This is a [Next.js](https://nextjs.org) application with PostgreSQL database and authentication using NextAuth.js.
+
+## Project Structure
+
+```
+portfolio-admin/
+├── prisma/               # Database schema and migrations
+├── public/               # Static assets
+├── src/
+│   ├── actions/          # Server actions
+│   ├── app/              # Next.js app router pages
+│   ├── components/       # React components
+│   ├── context/          # React context providers
+│   ├── db/               # Database queries
+│   ├── hooks/            # Custom React hooks
+│   └── styles/           # Global styles
+└── .env                  # Environment variables
+```
+
+## Environment Setup
+
+Before running the application, you need to set up your environment variables in the `.env` file:
+
+```
+# Database Configuration
+DATABASE_URL="postgresql://username:password@localhost:5432/portfolio_admin"
+
+# Authentication
+AUTH_SECRET="your-auth-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
+
+# GitHub OAuth
+GITHUB_CLIENT_ID="your-github-client-id"
+GITHUB_CLIENT_SECRET="your-github-client-secret"
+
+# Google OAuth
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+```
 
 ## Getting Started
 
-To run the development server:
+1. Install dependencies:
+
+```bash
+npm install
+# or
+yarn install
+```
+
+2. Set up the database:
+
+```bash
+npx prisma migrate dev
+```
+
+3. Run the development server:
 
 ```bash
 npm run dev
