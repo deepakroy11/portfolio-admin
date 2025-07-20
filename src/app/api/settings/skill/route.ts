@@ -10,6 +10,22 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 const defaulLogo = `${baseUrl}/uploads/place-holder-logo.svg`;
 
 export async function GET() {
+  try {
+    const skills = await client.skill.findMany();
+    return NextResponse.json({ success: true, skills });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json(
+      { success: false, error: "Something went wrong..." },
+      { status: 500 }
+    );
+    
+  }
   return NextResponse.json({ success: true, message: "Working on it" });
 }
 

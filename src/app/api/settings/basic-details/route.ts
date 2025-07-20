@@ -7,6 +7,22 @@ import { writeFile } from "fs/promises";
 const client = new PrismaClient();
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
+export async function GET(req:NextRequest) {
+  try{
+    const basicDetails = await client.basicDetails.findFirst();
+    if(!basicDetails){
+      return NextResponse.json({success: false, message: "No data available."})
+    }
+    return NextResponse.json({success:true, basicDetails})
+  } catch (error: unknown) {
+    if(error instanceof Error){
+      console.log("Error in GET:", error.message);
+    }
+
+    return NextResponse.json({success: false , message: "Something went wrong"}, {status: 500});
+  }
+}
+
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
 
