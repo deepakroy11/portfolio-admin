@@ -22,7 +22,7 @@ const TopBar = () => {
   if (!session || pathname === "/login") return null;
 
   return (
-    <Navbar className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <Navbar className="rounded-2xl border border-primary-50  m-auto mt-4 shadow-sm bg-background/95 backdrop-blur ">
       <NavbarContent justify="end">
         <NavbarItem>
           <Badge content="3" color="danger" size="sm">

@@ -24,7 +24,7 @@ const SidebarWrapper = () => {
   }
 
   return (
-    <aside className="w-64 h-screen flex m-4 shadow rounded-2xl flex-col">
+    <aside className="w-64 h-screen border border-primary-50 flex m-4 shadow rounded-2xl flex-col">
       {/* Header */}
       <div className="p-6">
         <div className="flex items-center justify-between">

@@ -48,7 +48,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     }),
   ],
   session: {
-    strategy: "database",
+    strategy: "jwt", // Changed from database to JWT for better compatibility with remote databases
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
     signIn: "/login",
@@ -62,11 +63,17 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       if (new URL(url).origin === baseUrl) return url;
       return `${baseUrl}/dashboard`;
     },
-    async session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
+    async session({ session, token }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
       }
       return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
     },
   },
   debug: process.env.NODE_ENV === "development",
