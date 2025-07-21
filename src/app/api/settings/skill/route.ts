@@ -96,18 +96,17 @@ export async function POST(req: NextRequest) {
   }
 }
 
-
- export async function PUT(req:NextRequest){
+export async function PUT(req:NextRequest,){
   const formData = await req.formData();
 
+  const id = formData.get("id") as string;
   const title = formData.get("skill-title") as string;
   const summary = formData.get("skill-summary") as string;
   const image = formData.get("skillImage") as File | null;
 
-  const data = {
+  const data:{title:string; summary:string, image?:string} = {
     title,
-    summary,
-    image: defaulLogo, // default initially
+    summary
   };
 
   const uploadFile = async (file: File) => {
@@ -133,16 +132,50 @@ export async function POST(req: NextRequest) {
 
   if (image && image.name !== "" && image.size > 0) {
     const imageUrl = await uploadFile(image);
-    data.image = imageUrl;
+    if(imageUrl){
+      data.image = imageUrl;
+    }
+    
   }
 
   try {
-    //const response = await client.skill.update({where:{id:}, data})
-    return NextResponse.json({success:false, message:"Unable to update skill"}, {status:500})
+    const response = await client.skill.update({where:{id:id}, data})
+    console.log(data)
+    if(!data.image) {data.image = response.image};
+    console.log(data)
+    return NextResponse.json({
+      success: true,
+      skill: data,
+      message: "Skill Updated Successfully.",
+    });
   } catch (error:unknown) {
     if (error instanceof Error) {
       console.log(error.message);
     }
     return NextResponse.json({success:false, message:"Unable to update skill"}, {status:500})
+  }
+}
+
+export async function DELETE(req:NextRequest) {
+  // Get ID from URL query parameter
+  const url = new URL(req.url);
+  const id = url.searchParams.get("id");
+  
+  if (id) {
+    try {
+      const response = await client.skill.delete({ where: { id } });
+      return NextResponse.json({
+        success: true,
+        id: id,
+        message: "Skill Deleted Successfully.",
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log(error.message);
+      }
+      return NextResponse.json({success:false, message:"Unable to delete skill"}, {status:500})
+    }
+  } else {
+    return NextResponse.json({success:false, message:"Unable to delete skill - Id not set."}, {status:500})
   }
 }

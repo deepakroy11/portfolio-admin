@@ -110,19 +110,41 @@ const Skills = ({ skills }: skillsProps) => {
     const form = event.currentTarget;
     const formData = new FormData(event.currentTarget);
     if (skillImage) formData.append("skillImage", skillImage);
+    if(selectedSkill?.id) {
+      formData.append("id", selectedSkill?.id)
+    } else{
+      setError("Skill id is not set, Please select a skill");
+      setTimeout(() => {
+        setError(null)
+      }, 3000);
+      return false;
+    }
 
     try{
-      const response = await fetch(`/api/settings/skill/${selectedSkill?.id}`,{
+      const response = await fetch(`/api/settings/skill`,{
         method: "PUT",
         body:formData
       })
-      if (response.ok) {
+      if (!response.ok) {
+       console.log(error)
+        setError("Unable to update. Please try after sometime");
+        setTimeout(() => {
+          setError(null)
+        }, 3000);
+      }
+      const result = await response.json();
+    
+      if (result.success) {
+        setSelectedSkill(result.skill);
         setSuccess("Skill saved successfully.");
         setSkillImage(null);
         setSkillImgPreview("");
-        setTimeout(() => setSuccess(null), 3000);
-        router.refresh();
+        setTimeout(() => {
+          router.refresh();
+          setSuccess(null);
+          onSkillEditModalChange(); }, 3000);
       }
+      
     }catch(error:unknown){
       console.log(error)
       setError("Unable to update. Please try after sometime");
@@ -131,6 +153,58 @@ const Skills = ({ skills }: skillsProps) => {
       }, 3000);
     }finally{
       setIsLoading(false)
+    }
+  }
+
+    // For delete confirmation
+  const {
+    isOpen: isDeleteModalOpen,
+    onOpen: onDeleteModalOpen,
+    onOpenChange: onDeleteModalChange,
+  } = useDisclosure();
+  const [skillToDelete, setSkillToDelete] = useState<string | null>(null);
+
+  const confirmDelete = (id: string) => {
+    setSkillToDelete(id);
+    onDeleteModalOpen();
+  };
+
+  const handleDelete = async () => {
+    if (!skillToDelete) return;
+    
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`/api/settings/skill?id=${skillToDelete}`, {
+        method: "DELETE",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        setSuccess("Skill deleted successfully.");
+        setTimeout(() => {
+          setSuccess(null);
+          router.refresh();
+        }, 2000);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to delete skill");
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log(error.message);
+      }
+
+      setError("Unable to delete. Please try after sometime");
+      setTimeout(() => {
+        setError(null);
+      }, 3000);
+    } finally {
+      setIsLoading(false);
+      onDeleteModalChange();
+      setSkillToDelete(null);
     }
   }
 
@@ -165,7 +239,7 @@ const Skills = ({ skills }: skillsProps) => {
                 <Link onPress={()=>{setSelectedSkill(skill); onSkillEditModalOpen();}} className="cursor-pointer">
                   <BsPencilSquare className="w-5 h-5" />
                 </Link>
-                <Link className="cursor-pointer"><BsTrash className="w-5 h-5 text-danger" /></Link>
+                <Link className="cursor-pointer" onPress={()=>confirmDelete(skill.id)}><BsTrash className="w-5 h-5 text-danger" /></Link>
               </TableCell>
             </TableRow>
           ))}
@@ -193,7 +267,7 @@ const Skills = ({ skills }: skillsProps) => {
                     labelPlacement="outside"
                     placeholder="Enter skill title"
                     isRequired 
-                    value={selectedSkill?.title}
+                    defaultValue={selectedSkill?.title || ""}
                   />
                   <Textarea
                     label="Skill Summary"
@@ -201,7 +275,7 @@ const Skills = ({ skills }: skillsProps) => {
                     labelPlacement="outside"
                     placeholder="Enter skill summary"
                     isRequired
-                    value={selectedSkill?.summary}
+                    defaultValue={selectedSkill?.summary || ""}
                   />
                   <div className="w-full flex justify-start p-2 bg-primary-100 rounded-2xl items-center space-x-4">
                     <Button onPress={triggerSkillFile}>
@@ -313,6 +387,46 @@ const Skills = ({ skills }: skillsProps) => {
                     </Button>
                   </div>
                 </Form>
+              </ModalBody>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+      
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onOpenChange={onDeleteModalChange}
+        size="sm"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Confirm Delete
+              </ModalHeader>
+              <ModalBody>
+                <p>Are you sure you want to delete this skill? This action cannot be undone.</p>
+                
+                {success && (
+                  <Alert color="success" variant="faded" title={success} />
+                )}
+                {error && (
+                  <Alert color="danger" variant="faded" title={error} />
+                )}
+                
+                <div className="w-full flex justify-end space-x-2 mt-4">
+                  <Button color="default" variant="light" onPress={onClose}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    color="danger" 
+                    onPress={handleDelete} 
+                    isLoading={isLoading}
+                  >
+                    Delete
+                  </Button>
+                </div>
               </ModalBody>
             </>
           )}
