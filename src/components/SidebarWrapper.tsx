@@ -17,7 +17,6 @@ const SidebarWrapper = () => {
   const pathname = usePageCheck();
   const { data: session } = useSession();
   const { theme, toggleTheme } = useTheme();
-  console.log("Session:", session);
 
   if (pathname === "/login") {
     return null;

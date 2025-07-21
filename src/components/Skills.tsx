@@ -22,7 +22,7 @@ import {
   Alert,
 } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
-import { BsPencilSquare } from "react-icons/bs";
+import { BsPencilSquare, BsTrash } from "react-icons/bs";
 import type { Skill } from "@prisma/client";
 import { useRef, useState } from "react";
 
@@ -33,18 +33,30 @@ interface skillsProps {
 const Skills = ({ skills }: skillsProps) => {
   const router = useRouter();
 
+  //For new skill
   const {
     isOpen: isSkilltModalOpen,
     onOpen: onSkillModalOpen,
     onOpenChange: onSkillModalChange,
   } = useDisclosure();
 
-  const [isLoading, setIsLoading] = useState(false);
+  //For edit skill
+  const {
+     isOpen: isSkilltEditModalOpen,
+     onOpen: onSkillEditModalOpen,
+     onOpenChange: onSkillEditModalChange,
+  } = useDisclosure();
+
   const skillImgRef = useRef<HTMLInputElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [skillImgPreview, setSkillImgPreview] = useState<string>("");
   const [skillImage, setSkillImage] = useState<File | null>(null);
+  
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
+  console.log(selectedSkill)
 
   // Image/Logo Upload
   const triggerSkillFile = () => {
@@ -72,7 +84,7 @@ const Skills = ({ skills }: skillsProps) => {
         method: "POST",
         body: formData,
       });
-      console.log(response);
+      
       const result = response.json();
       if (response.ok) {
         setSuccess("Skill saved successfully.");
@@ -92,11 +104,41 @@ const Skills = ({ skills }: skillsProps) => {
     }
   };
 
+  const handleEditFormSubmit=async(event:React.FormEvent<HTMLFormElement>)=>{
+    event.preventDefault();
+    setIsLoading(true);
+    const form = event.currentTarget;
+    const formData = new FormData(event.currentTarget);
+    if (skillImage) formData.append("skillImage", skillImage);
+
+    try{
+      const response = await fetch(`/api/settings/skill/${selectedSkill?.id}`,{
+        method: "PUT",
+        body:formData
+      })
+      if (response.ok) {
+        setSuccess("Skill saved successfully.");
+        setSkillImage(null);
+        setSkillImgPreview("");
+        setTimeout(() => setSuccess(null), 3000);
+        router.refresh();
+      }
+    }catch(error:unknown){
+      console.log(error)
+      setError("Unable to update. Please try after sometime");
+      setTimeout(() => {
+        setError(null)
+      }, 3000);
+    }finally{
+      setIsLoading(false)
+    }
+  }
+
   return (
     <>
       <div className="flex justify-between items-center">
         <h2 className="text-2xl">Skills</h2>
-        <Button as={Link} size="sm" onPress={onSkillModalOpen}>
+        <Button as={Link} size="sm" color="primary" onPress={onSkillModalOpen}>
           New Skill
         </Button>
       </div>
@@ -119,15 +161,95 @@ const Skills = ({ skills }: skillsProps) => {
                   className="w-10 h-10 shadow"
                 />
               </TableCell>
-              <TableCell>
-                <Link onPress={onSkillModalOpen} className="cursor-pointer">
+              <TableCell className="space-x-2">
+                <Link onPress={()=>{setSelectedSkill(skill); onSkillEditModalOpen();}} className="cursor-pointer">
                   <BsPencilSquare className="w-5 h-5" />
                 </Link>
+                <Link className="cursor-pointer"><BsTrash className="w-5 h-5 text-danger" /></Link>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+      <Modal
+        isOpen={isSkilltEditModalOpen}
+        onOpenChange={(isOpen)=>{
+          onSkillEditModalChange();
+          if (!isOpen) setSelectedSkill(null); 
+        }}
+        size="2xl"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Edit Skill
+              </ModalHeader>
+              <ModalBody>
+                <Form className="space-y-4" onSubmit={handleEditFormSubmit}>
+                  <Input
+                    label="Skill Title"
+                    name="skill-title"
+                    labelPlacement="outside"
+                    placeholder="Enter skill title"
+                    isRequired 
+                    value={selectedSkill?.title}
+                  />
+                  <Textarea
+                    label="Skill Summary"
+                    name="skill-summary"
+                    labelPlacement="outside"
+                    placeholder="Enter skill summary"
+                    isRequired
+                    value={selectedSkill?.summary}
+                  />
+                  <div className="w-full flex justify-start p-2 bg-primary-100 rounded-2xl items-center space-x-4">
+                    <Button onPress={triggerSkillFile}>
+                      Upload SKill Logo
+                    </Button>
+                    { skillImgPreview !== "" ? (
+                      <Image
+                        src={skillImgPreview}
+                        width={100}
+                        className="shadow p-2"
+                      />)
+                     : selectedSkill?.image?
+                      <Image
+                        src={selectedSkill.image}
+                        width={100}
+                        className="shadow p-2"
+                      />
+                    :null}
+                  </div>
+                  <Input
+                    type="file"
+                    name="skill-image"
+                    ref={skillImgRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                  />
+                  {success && (
+                    <Alert color="success" variant="faded" title={success} />
+                  )}
+                  {error && (
+                    <Alert color="danger" variant="faded" title={error} />
+                  )}
+
+                  <div className="w-full flex justify-end space-x-2">
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Close
+                    </Button>
+                    <Button type="submit" color="primary" isLoading={isLoading}>
+                      Save Your Changes
+                    </Button>
+                  </div>
+                </Form>
+              </ModalBody>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
       <Modal
         isOpen={isSkilltModalOpen}
         onOpenChange={onSkillModalChange}
