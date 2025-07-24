@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       const file_name = Date.now() + "-" + file.name;
       const filePath = path.join(uploadDir, file_name);
       await writeFile(filePath, buffer);
-      return `${baseUrl}/uploads/${file_name}`;
+      return `/uploads/${file_name}`;
     } catch (error) {
       console.error("File upload failed:", error);
       throw new Error(`Failed to upload file: ${file?.name}`);
