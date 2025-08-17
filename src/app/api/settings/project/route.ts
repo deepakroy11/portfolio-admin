@@ -11,6 +11,25 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 const defaulProjectImage = `${baseUrl}/uploads/place-holder-logo.svg`;
 
 export async function GET() {
+  try {
+    const projects = await client.project.findMany({
+      include: {
+        skills: true,
+      },
+    });
+    return NextResponse.json({ success: true, projects });
+  } catch (error) {
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json(
+      { success: false, error: "Something went wrong..." },
+      { status: 500 }
+    );
+  }
   return NextResponse.json({ success: true, message: "Working on it" });
 }
 
@@ -174,8 +193,8 @@ export async function PUT(req: NextRequest) {
       data: {
         ...data,
         skills: {
-          set: skillIds.map((skillId) => ({ id: skillId }))
-        }
+          set: skillIds.map((skillId) => ({ id: skillId })),
+        },
       },
     });
     return NextResponse.json({ success: true, project });
@@ -214,7 +233,10 @@ export async function DELETE(req: NextRequest) {
     await client.project.delete({
       where: { id },
     });
-    return NextResponse.json({ success: true, message: "Project deleted successfully" });
+    return NextResponse.json({
+      success: true,
+      message: "Project deleted successfully",
+    });
   } catch (error: unknown) {
     if (error instanceof Error) {
       return NextResponse.json(
