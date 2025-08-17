@@ -17,11 +17,15 @@ const fallbackDetails: BasicDetails = {
 
 export default async function SettingPage() {
   const basicDetails = await db.basicDetails.findFirst();
-  const projects = await db.project.findMany();
+  const projects = await db.project.findMany({
+    include: {
+      skills: true
+    }
+  });
   const skills = await db.skill.findMany();
 
   return (
-    <main className="w-full flex-1 p-8 space-y-10">
+    <main className="w-full flex-1 py-8 px-2 space-y-10">
       {/* Dashboard Header */}
       <div>
         <h1 className="text-3xl font-bold">Front End Settings Page</h1>

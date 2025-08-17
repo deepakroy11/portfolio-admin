@@ -42,21 +42,21 @@ const Skills = ({ skills }: skillsProps) => {
 
   //For edit skill
   const {
-     isOpen: isSkilltEditModalOpen,
-     onOpen: onSkillEditModalOpen,
-     onOpenChange: onSkillEditModalChange,
+    isOpen: isSkilltEditModalOpen,
+    onOpen: onSkillEditModalOpen,
+    onOpenChange: onSkillEditModalChange,
   } = useDisclosure();
 
   const skillImgRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [skillImgPreview, setSkillImgPreview] = useState<string>("");
   const [skillImage, setSkillImage] = useState<File | null>(null);
-  
+
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
-  console.log(selectedSkill)
+  console.log(selectedSkill);
 
   // Image/Logo Upload
   const triggerSkillFile = () => {
@@ -84,7 +84,7 @@ const Skills = ({ skills }: skillsProps) => {
         method: "POST",
         body: formData,
       });
-      
+
       const result = response.json();
       if (response.ok) {
         setSuccess("Skill saved successfully.");
@@ -104,36 +104,38 @@ const Skills = ({ skills }: skillsProps) => {
     }
   };
 
-  const handleEditFormSubmit=async(event:React.FormEvent<HTMLFormElement>)=>{
+  const handleEditFormSubmit = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
     setIsLoading(true);
     const form = event.currentTarget;
     const formData = new FormData(event.currentTarget);
     if (skillImage) formData.append("skillImage", skillImage);
-    if(selectedSkill?.id) {
-      formData.append("id", selectedSkill?.id)
-    } else{
+    if (selectedSkill?.id) {
+      formData.append("id", selectedSkill?.id);
+    } else {
       setError("Skill id is not set, Please select a skill");
       setTimeout(() => {
-        setError(null)
+        setError(null);
       }, 3000);
       return false;
     }
 
-    try{
-      const response = await fetch(`/api/settings/skill`,{
+    try {
+      const response = await fetch(`/api/settings/skill`, {
         method: "PUT",
-        body:formData
-      })
+        body: formData,
+      });
       if (!response.ok) {
-       console.log(error)
+        console.log(error);
         setError("Unable to update. Please try after sometime");
         setTimeout(() => {
-          setError(null)
+          setError(null);
         }, 3000);
       }
       const result = await response.json();
-    
+
       if (result.success) {
         setSelectedSkill(result.skill);
         setSuccess("Skill saved successfully.");
@@ -142,21 +144,21 @@ const Skills = ({ skills }: skillsProps) => {
         setTimeout(() => {
           router.refresh();
           setSuccess(null);
-          onSkillEditModalChange(); }, 3000);
+          onSkillEditModalChange();
+        }, 3000);
       }
-      
-    }catch(error:unknown){
-      console.log(error)
+    } catch (error: unknown) {
+      console.log(error);
       setError("Unable to update. Please try after sometime");
       setTimeout(() => {
-        setError(null)
+        setError(null);
       }, 3000);
-    }finally{
-      setIsLoading(false)
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
-    // For delete confirmation
+  // For delete confirmation
   const {
     isOpen: isDeleteModalOpen,
     onOpen: onDeleteModalOpen,
@@ -171,17 +173,17 @@ const Skills = ({ skills }: skillsProps) => {
 
   const handleDelete = async () => {
     if (!skillToDelete) return;
-    
+
     setIsLoading(true);
 
     try {
       const response = await fetch(`/api/settings/skill?id=${skillToDelete}`, {
         method: "DELETE",
         headers: {
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
-      
+
       if (response.ok) {
         setSuccess("Skill deleted successfully.");
         setTimeout(() => {
@@ -206,7 +208,7 @@ const Skills = ({ skills }: skillsProps) => {
       onDeleteModalChange();
       setSkillToDelete(null);
     }
-  }
+  };
 
   return (
     <>
@@ -236,10 +238,23 @@ const Skills = ({ skills }: skillsProps) => {
                 />
               </TableCell>
               <TableCell className="space-x-2">
-                <Link onPress={()=>{setSelectedSkill(skill); onSkillEditModalOpen();}} className="cursor-pointer">
+                <Button
+                  isIconOnly
+                  variant="light"
+                  onPress={() => {
+                    setSelectedSkill(skill);
+                    onSkillEditModalOpen();
+                  }}
+                  className="cursor-pointer"
+                >
                   <BsPencilSquare className="w-5 h-5" />
+                </Button>
+                <Link
+                  className="cursor-pointer"
+                  onPress={() => confirmDelete(skill.id)}
+                >
+                  <BsTrash className="w-5 h-5 text-danger" />
                 </Link>
-                <Link className="cursor-pointer" onPress={()=>confirmDelete(skill.id)}><BsTrash className="w-5 h-5 text-danger" /></Link>
               </TableCell>
             </TableRow>
           ))}
@@ -247,9 +262,9 @@ const Skills = ({ skills }: skillsProps) => {
       </Table>
       <Modal
         isOpen={isSkilltEditModalOpen}
-        onOpenChange={(isOpen)=>{
+        onOpenChange={(isOpen) => {
           onSkillEditModalChange();
-          if (!isOpen) setSelectedSkill(null); 
+          if (!isOpen) setSelectedSkill(null);
         }}
         size="2xl"
       >
@@ -266,7 +281,7 @@ const Skills = ({ skills }: skillsProps) => {
                     name="skill-title"
                     labelPlacement="outside"
                     placeholder="Enter skill title"
-                    isRequired 
+                    isRequired
                     defaultValue={selectedSkill?.title || ""}
                   />
                   <Textarea
@@ -281,19 +296,19 @@ const Skills = ({ skills }: skillsProps) => {
                     <Button onPress={triggerSkillFile}>
                       Upload SKill Logo
                     </Button>
-                    { skillImgPreview !== "" ? (
+                    {skillImgPreview !== "" ? (
                       <Image
                         src={skillImgPreview}
                         width={100}
                         className="shadow p-2"
-                      />)
-                     : selectedSkill?.image?
+                      />
+                    ) : selectedSkill?.image ? (
                       <Image
                         src={selectedSkill.image}
                         width={100}
                         className="shadow p-2"
                       />
-                    :null}
+                    ) : null}
                   </div>
                   <Input
                     type="file"
@@ -392,7 +407,7 @@ const Skills = ({ skills }: skillsProps) => {
           )}
         </ModalContent>
       </Modal>
-      
+
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={isDeleteModalOpen}
@@ -406,22 +421,25 @@ const Skills = ({ skills }: skillsProps) => {
                 Confirm Delete
               </ModalHeader>
               <ModalBody>
-                <p>Are you sure you want to delete this skill? This action cannot be undone.</p>
-                
+                <p>
+                  Are you sure you want to delete this skill? This action cannot
+                  be undone.
+                </p>
+
                 {success && (
                   <Alert color="success" variant="faded" title={success} />
                 )}
                 {error && (
                   <Alert color="danger" variant="faded" title={error} />
                 )}
-                
+
                 <div className="w-full flex justify-end space-x-2 mt-4">
                   <Button color="default" variant="light" onPress={onClose}>
                     Cancel
                   </Button>
-                  <Button 
-                    color="danger" 
-                    onPress={handleDelete} 
+                  <Button
+                    color="danger"
+                    onPress={handleDelete}
                     isLoading={isLoading}
                   >
                     Delete
