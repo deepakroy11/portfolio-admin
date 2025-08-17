@@ -14,7 +14,7 @@ export default function LoginPage() {
         <CardBody className="space-y-6 text-center">
           <h2 className="text-xl font-bold">Sign In</h2>
           <Divider />
-          <form className="space-y-4 text-left">
+          {/* <form className="space-y-4 text-left">
             <Input
               type="text"
               name="userid"
@@ -41,7 +41,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <DiverWithText text="or" />
+          <DiverWithText text="or" /> */}
 
           <div className="space-y-2">
             <Button

@@ -18,7 +18,7 @@ export async function GET() {
       },
     });
     return NextResponse.json({ success: true, projects });
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof Error) {
       return NextResponse.json(
         { success: false, error: error.message },
@@ -30,7 +30,6 @@ export async function GET() {
       { status: 500 }
     );
   }
-  return NextResponse.json({ success: true, message: "Working on it" });
 }
 
 export async function POST(req: NextRequest) {
