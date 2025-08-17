@@ -35,9 +35,9 @@ export default function RootLayout({
           <SessionWrapper>
             <div className="min-h-screen flex bg-background">
               <SidebarWrapper />
-              <div className="flex-1 flex flex-col">
+              <div className="flex-1 flex flex-col lg:ml-0">
                 {/* <TopBar /> */}
-                <main className="flex-1 overflow-auto">
+                <main className="flex-1 overflow-auto pt-16 lg:pt-0">
                   {children}
                 </main>
               </div>

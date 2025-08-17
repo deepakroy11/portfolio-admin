@@ -1,7 +1,6 @@
-import BasicDetails from "@/components/BasicDetails";
-import Projects from "@/components/Projects";
-import Skills from "@/components/Skills";
 import { db } from "@/db";
+import SettingsTabs from "@/components/SettingsTabs";
+import { BasicDetails } from "@prisma/client";
 
 const fallbackDetails: BasicDetails = {
   id: "",
@@ -19,42 +18,30 @@ export default async function SettingPage() {
   const basicDetails = await db.basicDetails.findFirst();
   const projects = await db.project.findMany({
     include: {
-      skills: true
-    }
+      skills: true,
+    },
   });
   const skills = await db.skill.findMany();
 
   return (
-    <main className="w-full flex-1 py-8 px-2 space-y-10">
-      {/* Dashboard Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Front End Settings Page</h1>
+    <main className="w-full flex-1 py-4 sm:py-8 px-2 sm:px-4">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          Portfolio Settings
+        </h1>
+        <p className="text-default-600 text-sm mt-1">
+          Manage your portfolio content and information
+        </p>
       </div>
-      <div className="flex flex-row space-x-4">
-        <div className="w-full space-y-4">
-          <section
-            id="basic-details"
-            className="flex flex-col shadow dark:shadow-primary p-4 rounded-2xl w-full max-w-2xl space-y-6"
-          >
-            <Skills skills={skills} />
-          </section>
-          <section
-            id="basic-details"
-            className="flex flex-col shadow dark:shadow-primary p-4 rounded-2xl w-full max-w-2xl space-y-6"
-          >
-            <Projects projects={projects} skills={skills} />
-          </section>
-        </div>
-        <div className="w-full">
-          <section
-            id="basic-details"
-            className="flex flex-col shadow dark:shadow-primary p-4 rounded-2xl w-full max-w-2xl space-y-6"
-          >
-            <h2 className="text-2xl">Basic Details</h2>
-            <BasicDetails details={basicDetails ?? fallbackDetails} />
-          </section>
-        </div>
-      </div>
+
+      {/* Tabs */}
+      <SettingsTabs
+        basicDetails={basicDetails}
+        projects={projects}
+        skills={skills}
+        fallbackDetails={fallbackDetails}
+      />
     </main>
   );
 }

@@ -20,17 +20,20 @@ import {
   ModalBody,
   ModalHeader,
   Alert,
+  Pagination,
+  Spinner,
 } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
 import { BsPencilSquare, BsTrash } from "react-icons/bs";
 import type { Skill } from "@prisma/client";
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 
 interface skillsProps {
   skills: Skill[];
+  isLoading?: boolean;
 }
 
-const Skills = ({ skills }: skillsProps) => {
+const Skills = ({ skills, isLoading: contentLoading = false }: skillsProps) => {
   const router = useRouter();
 
   //For new skill
@@ -48,7 +51,7 @@ const Skills = ({ skills }: skillsProps) => {
   } = useDisclosure();
 
   const skillImgRef = useRef<HTMLInputElement>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [skillImgPreview, setSkillImgPreview] = useState<string>("");
   const [skillImage, setSkillImage] = useState<File | null>(null);
 
@@ -56,7 +59,15 @@ const Skills = ({ skills }: skillsProps) => {
   const [success, setSuccess] = useState<string | null>(null);
 
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
-  console.log(selectedSkill);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 10;
+
+  const pages = Math.ceil(skills.length / rowsPerPage);
+  const items = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    return skills.slice(start, end);
+  }, [page, skills]);
 
   // Image/Logo Upload
   const triggerSkillFile = () => {
@@ -74,7 +85,7 @@ const Skills = ({ skills }: skillsProps) => {
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget; // reference to the form
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     const formData = new FormData(event.currentTarget);
     if (skillImage) formData.append("skillImage", skillImage);
@@ -100,7 +111,7 @@ const Skills = ({ skills }: skillsProps) => {
       setError("Unable to save. Please try after sometime");
       setTimeout(() => setError(null), 3000);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -108,7 +119,7 @@ const Skills = ({ skills }: skillsProps) => {
     event: React.FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
     const form = event.currentTarget;
     const formData = new FormData(event.currentTarget);
     if (skillImage) formData.append("skillImage", skillImage);
@@ -154,7 +165,7 @@ const Skills = ({ skills }: skillsProps) => {
         setError(null);
       }, 3000);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -165,6 +176,7 @@ const Skills = ({ skills }: skillsProps) => {
     onOpenChange: onDeleteModalChange,
   } = useDisclosure();
   const [skillToDelete, setSkillToDelete] = useState<string | null>(null);
+  const [deletingSkillId, setDeletingSkillId] = useState<string | null>(null);
 
   const confirmDelete = (id: string) => {
     setSkillToDelete(id);
@@ -174,7 +186,8 @@ const Skills = ({ skills }: skillsProps) => {
   const handleDelete = async () => {
     if (!skillToDelete) return;
 
-    setIsLoading(true);
+    setIsSubmitting(true);
+    setDeletingSkillId(skillToDelete);
 
     try {
       const response = await fetch(`/api/settings/skill?id=${skillToDelete}`, {
@@ -204,7 +217,8 @@ const Skills = ({ skills }: skillsProps) => {
         setError(null);
       }, 3000);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
+      setDeletingSkillId(null);
       onDeleteModalChange();
       setSkillToDelete(null);
     }
@@ -212,54 +226,150 @@ const Skills = ({ skills }: skillsProps) => {
 
   return (
     <>
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl">Skills</h2>
-        <Button as={Link} size="sm" color="primary" onPress={onSkillModalOpen}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        <h2 className="text-xl sm:text-2xl">Skills</h2>
+        <Button
+          as={Link}
+          size="sm"
+          color="primary"
+          onPress={onSkillModalOpen}
+          className="w-full sm:w-auto"
+        >
           New Skill
         </Button>
       </div>
-      <Table isVirtualized maxTableHeight={400} rowHeight={50}>
-        <TableHeader>
-          <TableColumn>SL</TableColumn>
-          <TableColumn>Title</TableColumn>
-          <TableColumn>Image</TableColumn>
-          <TableColumn>Actions</TableColumn>
-        </TableHeader>
-        <TableBody>
-          {skills.map((skill, index) => (
-            <TableRow className="items-center">
-              <TableCell>{index + 1}</TableCell>
-              <TableCell>{skill.title}</TableCell>
-              <TableCell className="">
-                <Image
-                  src={skill.image}
-                  alt={skill.title}
-                  className="w-10 h-10 shadow"
-                />
-              </TableCell>
-              <TableCell className="space-x-2">
+
+      {/* Mobile Card View */}
+      <div className="block lg:hidden space-y-3">
+        {contentLoading ? (
+          <div className="flex justify-center py-8">
+            <Spinner size="lg" />
+          </div>
+        ) : (
+          skills.map((skill, index) => (
+          <div
+            key={skill.id}
+            className="bg-content1 rounded-lg p-4 shadow-sm border"
+          >
+            <div className="flex justify-between items-start mb-3">
+              <span className="text-sm text-default-500">#{index + 1}</span>
+              <div className="flex gap-2">
                 <Button
                   isIconOnly
-                  variant="light"
+                  size="sm"
+                  variant="flat"
                   onPress={() => {
                     setSelectedSkill(skill);
                     onSkillEditModalOpen();
                   }}
-                  className="cursor-pointer"
                 >
-                  <BsPencilSquare className="w-5 h-5" />
+                  <BsPencilSquare className="w-4 h-4" />
                 </Button>
-                <Link
-                  className="cursor-pointer"
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="flat"
+                  color="danger"
                   onPress={() => confirmDelete(skill.id)}
+                  isLoading={deletingSkillId === skill.id}
                 >
-                  <BsTrash className="w-5 h-5 text-danger" />
-                </Link>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                  {deletingSkillId === skill.id ? <Spinner size="sm" /> : <BsTrash className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Image
+                src={skill.image}
+                alt={skill.title}
+                className="w-12 h-12 rounded shadow flex-shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-sm truncate">{skill.title}</h3>
+                <p className="text-xs text-default-500 mt-1 line-clamp-2">
+                  {skill.summary}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden lg:block">
+        {contentLoading ? (
+          <div className="flex justify-center py-8">
+            <Spinner size="lg" />
+          </div>
+        ) : (
+        <Table 
+          bottomContent={
+            pages > 1 ? (
+              <div className="flex w-full justify-center">
+                <Pagination
+                  isCompact
+                  showControls
+                  showShadow
+                  color="primary"
+                  page={page}
+                  total={pages}
+                  onChange={(page) => setPage(page)}
+                />
+              </div>
+            ) : null
+          }
+        >
+          <TableHeader>
+            <TableColumn>SL</TableColumn>
+            <TableColumn>Title</TableColumn>
+            <TableColumn>Image</TableColumn>
+            <TableColumn>Actions</TableColumn>
+          </TableHeader>
+          <TableBody>
+            {items.map((skill, index) => (
+              <TableRow key={skill.id} className="items-center">
+                <TableCell>{index + 1}</TableCell>
+                <TableCell className="max-w-32 truncate">
+                  {skill.title}
+                </TableCell>
+                <TableCell>
+                  <Image
+                    src={skill.image}
+                    alt={skill.title}
+                    className="w-10 h-10 shadow rounded"
+                  />
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="flat"
+                      onPress={() => {
+                        setSelectedSkill(skill);
+                        onSkillEditModalOpen();
+                      }}
+                    >
+                      <BsPencilSquare className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="flat"
+                      color="danger"
+                      onPress={() => confirmDelete(skill.id)}
+                      isLoading={deletingSkillId === skill.id}
+                    >
+                      {deletingSkillId === skill.id ? <Spinner size="sm" /> : <BsTrash className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        )}
+      </div>
       <Modal
         isOpen={isSkilltEditModalOpen}
         onOpenChange={(isOpen) => {
@@ -267,6 +377,12 @@ const Skills = ({ skills }: skillsProps) => {
           if (!isOpen) setSelectedSkill(null);
         }}
         size="2xl"
+        scrollBehavior="inside"
+        className="mx-2"
+        classNames={{
+          base: "max-h-[90vh]",
+          body: "p-4 sm:p-6",
+        }}
       >
         <ModalContent>
           {(onClose) => (
@@ -292,21 +408,23 @@ const Skills = ({ skills }: skillsProps) => {
                     isRequired
                     defaultValue={selectedSkill?.summary || ""}
                   />
-                  <div className="w-full flex justify-start p-2 bg-primary-100 rounded-2xl items-center space-x-4">
-                    <Button onPress={triggerSkillFile}>
-                      Upload SKill Logo
+                  <div className="w-full flex flex-col sm:flex-row justify-start p-3 bg-primary-100 rounded-2xl items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                    <Button
+                      onPress={triggerSkillFile}
+                      size="sm"
+                      className="w-full sm:w-auto"
+                    >
+                      Upload Logo
                     </Button>
                     {skillImgPreview !== "" ? (
                       <Image
                         src={skillImgPreview}
-                        width={100}
-                        className="shadow p-2"
+                        className="w-full sm:w-24 max-w-24 shadow p-2 rounded"
                       />
                     ) : selectedSkill?.image ? (
                       <Image
                         src={selectedSkill.image}
-                        width={100}
-                        className="shadow p-2"
+                        className="w-full sm:w-24 max-w-24 shadow p-2 rounded"
                       />
                     ) : null}
                   </div>
@@ -325,12 +443,12 @@ const Skills = ({ skills }: skillsProps) => {
                     <Alert color="danger" variant="faded" title={error} />
                   )}
 
-                  <div className="w-full flex justify-end space-x-2">
-                    <Button color="danger" variant="light" onPress={onClose}>
+                  <div className="w-full flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
+                    <Button color="danger" variant="light" onPress={onClose} className="w-full sm:w-auto">
                       Close
                     </Button>
-                    <Button type="submit" color="primary" isLoading={isLoading}>
-                      Save Your Changes
+                    <Button type="submit" color="primary" isLoading={isSubmitting} className="w-full sm:w-auto">
+                      Save Changes
                     </Button>
                   </div>
                 </Form>
@@ -343,6 +461,12 @@ const Skills = ({ skills }: skillsProps) => {
         isOpen={isSkilltModalOpen}
         onOpenChange={onSkillModalChange}
         size="2xl"
+        scrollBehavior="inside"
+        className="mx-2"
+        classNames={{
+          base: "max-h-[90vh]",
+          body: "p-4 sm:p-6"
+        }}
       >
         <ModalContent>
           {(onClose) => (
@@ -366,15 +490,14 @@ const Skills = ({ skills }: skillsProps) => {
                     placeholder="Enter skill summary"
                     isRequired
                   />
-                  <div className="w-full flex justify-start p-2 bg-primary-100 rounded-2xl items-center space-x-4">
-                    <Button onPress={triggerSkillFile}>
-                      Upload SKill Logo
+                  <div className="w-full flex flex-col sm:flex-row justify-start p-3 bg-primary-100 rounded-2xl items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                    <Button onPress={triggerSkillFile} size="sm" className="w-full sm:w-auto">
+                      Upload Logo
                     </Button>
                     {skillImgPreview != "" && (
                       <Image
                         src={skillImgPreview}
-                        width={100}
-                        className="shadow p-2"
+                        className="w-full sm:w-24 max-w-24 shadow p-2 rounded"
                       />
                     )}
                   </div>
@@ -393,11 +516,11 @@ const Skills = ({ skills }: skillsProps) => {
                     <Alert color="danger" variant="faded" title={error} />
                   )}
 
-                  <div className="w-full flex justify-end space-x-2">
-                    <Button color="danger" variant="light" onPress={onClose}>
+                  <div className="w-full flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
+                    <Button color="danger" variant="light" onPress={onClose} className="w-full sm:w-auto">
                       Close
                     </Button>
-                    <Button type="submit" color="primary" isLoading={isLoading}>
+                    <Button type="submit" color="primary" isLoading={isSubmitting} className="w-full sm:w-auto">
                       Save Skill
                     </Button>
                   </div>
@@ -413,6 +536,10 @@ const Skills = ({ skills }: skillsProps) => {
         isOpen={isDeleteModalOpen}
         onOpenChange={onDeleteModalChange}
         size="sm"
+        className="mx-2"
+        classNames={{
+          body: "p-4 sm:p-6"
+        }}
       >
         <ModalContent>
           {(onClose) => (
@@ -433,14 +560,15 @@ const Skills = ({ skills }: skillsProps) => {
                   <Alert color="danger" variant="faded" title={error} />
                 )}
 
-                <div className="w-full flex justify-end space-x-2 mt-4">
-                  <Button color="default" variant="light" onPress={onClose}>
+                <div className="w-full flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
+                  <Button color="default" variant="light" onPress={onClose} className="w-full sm:w-auto">
                     Cancel
                   </Button>
                   <Button
                     color="danger"
                     onPress={handleDelete}
-                    isLoading={isLoading}
+                    isLoading={isSubmitting}
+                    className="w-full sm:w-auto"
                   >
                     Delete
                   </Button>

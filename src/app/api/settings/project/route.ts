@@ -198,3 +198,39 @@ export async function PUT(req: NextRequest) {
     );
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return NextResponse.json(
+      { success: false, message: "Project ID is required" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    await client.project.delete({
+      where: { id },
+    });
+    return NextResponse.json({ success: true, message: "Project deleted successfully" });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.message,
+        },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Something went wrong...",
+      },
+      { status: 500 }
+    );
+  }
+}

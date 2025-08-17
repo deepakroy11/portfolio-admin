@@ -22,11 +22,13 @@ import {
   Alert,
   Avatar,
   Chip,
+  Pagination,
+  Spinner,
 } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
 import { BsPencilSquare, BsTrash } from "react-icons/bs";
 import type { Project, Skill } from "@prisma/client";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 type ProjectWithSkills = Project & {
@@ -36,9 +38,10 @@ type ProjectWithSkills = Project & {
 interface projectsProps {
   projects: ProjectWithSkills[];
   skills: Skill[];
+  isLoading?: boolean;
 }
 
-const Projects = ({ projects, skills }: projectsProps) => {
+const Projects = ({ projects, skills, isLoading: contentLoading = false }: projectsProps) => {
   const router = useRouter();
 
   // Handle New Modal Change
@@ -55,7 +58,14 @@ const Projects = ({ projects, skills }: projectsProps) => {
     onOpenChange: onEditModalChange,
   } = useDisclosure();
 
-  const [isLoading, setIsLoading] = useState(false);
+  // Handle Delete Modal Change
+  const {
+    isOpen: isDeleteModalOpen,
+    onOpen: onDeleteModalOpen,
+    onOpenChange: onDeleteModalChange,
+  } = useDisclosure();
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const projectImgRef = useRef<HTMLInputElement>(null);
   const [projectImgPreview, setProjectImgPreview] = useState<string>("");
   const [projectImage, setProjectImage] = useState<File | null>(null);
@@ -65,7 +75,17 @@ const Projects = ({ projects, skills }: projectsProps) => {
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] =
     useState<ProjectWithSkills | null>(null);
-  console.log("selectedProject", selectedProject);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 10;
+
+  const pages = Math.ceil(projects.length / rowsPerPage);
+  const items = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    return projects.slice(start, end);
+  }, [page, projects]);
 
   // Handle file change
   const triggerFileChange = () => {
@@ -84,12 +104,8 @@ const Projects = ({ projects, skills }: projectsProps) => {
     setSkillSet(event.target.value);
   };
 
-  const handleEditSkillChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    setEditSkillSet(
-      Array.from(event.target.selectedOptions, (option) => option.value)
-    );
+  const handleEditSkillChange = (keys: any) => {
+    setEditSkillSet(Array.from(keys));
   };
 
   // Handle project submit
@@ -98,7 +114,7 @@ const Projects = ({ projects, skills }: projectsProps) => {
   ) => {
     event.preventDefault();
     const form = event.currentTarget;
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     const formData = new FormData(event.currentTarget);
     if (projectImage) formData.append("projectImage", projectImage);
@@ -125,7 +141,7 @@ const Projects = ({ projects, skills }: projectsProps) => {
       setError("Unable to save. Please try after sometime");
       setTimeout(() => setError(null), 3000);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -135,7 +151,7 @@ const Projects = ({ projects, skills }: projectsProps) => {
   ) => {
     event.preventDefault();
     const form = event.currentTarget;
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     const formData = new FormData(event.currentTarget);
     if (projectImage) formData.append("projectImage", projectImage);
@@ -166,43 +182,81 @@ const Projects = ({ projects, skills }: projectsProps) => {
       setError("Unable to update. Please try after sometime");
       setTimeout(() => setError(null), 3000);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  const confirmDelete = (id: string) => {
+    setProjectToDelete(id);
+    onDeleteModalOpen();
+  };
+
+  const handleDelete = async () => {
+    if (!projectToDelete) return;
+    
+    setIsSubmitting(true);
+    setDeletingProjectId(projectToDelete);
+
+    try {
+      const response = await fetch(`/api/settings/project?id=${projectToDelete}`, {
+        method: "DELETE",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        setSuccess("Project deleted successfully.");
+        setTimeout(() => {
+          setSuccess(null);
+          router.refresh();
+        }, 2000);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to delete project");
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log(error.message);
+      }
+
+      setError("Unable to delete. Please try after sometime");
+      setTimeout(() => {
+        setError(null);
+      }, 3000);
+    } finally {
+      setIsSubmitting(false);
+      setDeletingProjectId(null);
+      onDeleteModalChange();
+      setProjectToDelete(null);
+    }
+  };
+
   return (
     <>
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl">Projects</h2>
-        <Button href="#" size="sm" onPress={onNewModalOpen}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        <h2 className="text-xl sm:text-2xl">Projects</h2>
+        <Button href="#" size="sm" onPress={onNewModalOpen} className="w-full sm:w-auto">
           New Project
         </Button>
       </div>
-      <Table isVirtualized maxTableHeight={400} rowHeight={50}>
-        <TableHeader>
-          <TableColumn>SL</TableColumn>
-          <TableColumn>Title</TableColumn>
-          <TableColumn>Summary</TableColumn>
-          <TableColumn>Image</TableColumn>
-          <TableColumn>Actions</TableColumn>
-        </TableHeader>
-        <TableBody>
-          {projects.map((project, index) => (
-            <TableRow>
-              <TableCell>{index + 1}</TableCell>
-              <TableCell>{project.title}</TableCell>
-              <TableCell>{project.summary}</TableCell>
-              <TableCell>
-                <Image
-                  src={project.image}
-                  alt={project.title}
-                  className="w-24 h-12 object-cover"
-                />
-              </TableCell>
-
-              <TableCell>
+      
+      {/* Mobile Card View */}
+      <div className="block lg:hidden space-y-4">
+        {contentLoading ? (
+          <div className="flex justify-center py-8">
+            <Spinner size="lg" />
+          </div>
+        ) : (
+          projects.map((project, index) => (
+          <div key={project.id} className="bg-content1 rounded-lg p-4 shadow-sm border">
+            <div className="flex justify-between items-start mb-3">
+              <span className="text-sm text-default-500">#{index + 1}</span>
+              <div className="flex gap-2">
                 <Button
                   isIconOnly
-                  variant="light"
+                  size="sm"
+                  variant="flat"
                   onPress={() => {
                     setSelectedProject(project);
                     setEditSkillSet(
@@ -210,19 +264,126 @@ const Projects = ({ projects, skills }: projectsProps) => {
                     );
                     onEditModalOpen();
                   }}
-                  className="cursor-pointer"
                 >
-                  <BsPencilSquare className="w-5 h-5" />
+                  <BsPencilSquare className="w-4 h-4" />
                 </Button>
-                <Button isIconOnly variant="light" className="cursor-pointer">
-                  <BsTrash className="w-5 h-5 text-danger" />
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="flat"
+                  color="danger"
+                  onPress={() => confirmDelete(project.id)}
+                  isLoading={deletingProjectId === project.id}
+                >
+                  {deletingProjectId === project.id ? <Spinner size="sm" /> : <BsTrash className="w-4 h-4" />}
                 </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <Modal isOpen={isNewModalOpen} onOpenChange={onNewModalChange} size="2xl">
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Image
+                src={project.image}
+                alt={project.title}
+                className="w-16 h-12 object-cover rounded flex-shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-sm truncate">{project.title}</h3>
+                <p className="text-xs text-default-500 mt-1 line-clamp-2">{project.summary}</p>
+              </div>
+            </div>
+          </div>
+        ))
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden lg:block">
+        {contentLoading ? (
+          <div className="flex justify-center py-8">
+            <Spinner size="lg" />
+          </div>
+        ) : (
+        <Table 
+          bottomContent={
+            pages > 1 ? (
+              <div className="flex w-full justify-center">
+                <Pagination
+                  isCompact
+                  showControls
+                  showShadow
+                  color="primary"
+                  page={page}
+                  total={pages}
+                  onChange={(page) => setPage(page)}
+                />
+              </div>
+            ) : null
+          }
+        >
+          <TableHeader>
+            <TableColumn>SL</TableColumn>
+            <TableColumn>Title</TableColumn>
+            <TableColumn>Summary</TableColumn>
+            <TableColumn>Image</TableColumn>
+            <TableColumn>Actions</TableColumn>
+          </TableHeader>
+          <TableBody>
+            {items.map((project, index) => (
+              <TableRow key={project.id}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell className="max-w-32 truncate">{project.title}</TableCell>
+                <TableCell className="max-w-48 truncate">{project.summary}</TableCell>
+                <TableCell>
+                  <Image
+                    src={project.image}
+                    alt={project.title}
+                    className="w-20 h-10 object-cover rounded"
+                  />
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="flat"
+                      onPress={() => {
+                        setSelectedProject(project);
+                        setEditSkillSet(
+                          project.skills?.map((skill) => skill.id) || []
+                        );
+                        onEditModalOpen();
+                      }}
+                    >
+                      <BsPencilSquare className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="flat"
+                      color="danger"
+                      onPress={() => confirmDelete(project.id)}
+                      isLoading={deletingProjectId === project.id}
+                    >
+                      {deletingProjectId === project.id ? <Spinner size="sm" /> : <BsTrash className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        )}
+      </div>
+      <Modal 
+        isOpen={isNewModalOpen} 
+        onOpenChange={onNewModalChange} 
+        size="2xl" 
+        scrollBehavior="inside" 
+        className="mx-2"
+        classNames={{
+          base: "max-h-[90vh]",
+          body: "p-4 sm:p-6"
+        }}
+      >
         <ModalContent>
           {(onClose) => (
             <>
@@ -290,12 +451,12 @@ const Projects = ({ projects, skills }: projectsProps) => {
                     )}
                   </Select>
 
-                  <div className="w-full flex justify-start items-center bg-primary-100 rounded-2xl p-4 space-x-4">
-                    <Button onPress={triggerFileChange}>
-                      Upload Project Screenshot
+                  <div className="w-full flex flex-col sm:flex-row justify-start items-center bg-primary-100 rounded-2xl p-4 space-y-2 sm:space-y-0 sm:space-x-4">
+                    <Button onPress={triggerFileChange} size="sm" className="w-full sm:w-auto">
+                      Upload Screenshot
                     </Button>
                     {projectImgPreview != "" && (
-                      <Image src={projectImgPreview} width={200} />
+                      <Image src={projectImgPreview} className="w-full sm:w-48 max-w-48" />
                     )}
                     <Input
                       type="file"
@@ -314,11 +475,11 @@ const Projects = ({ projects, skills }: projectsProps) => {
                     <Alert color="danger" variant="faded" title={error} />
                   )}
 
-                  <div className="w-full flex justify-end space-x-2">
-                    <Button color="danger" variant="light" onPress={onClose}>
+                  <div className="w-full flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
+                    <Button color="danger" variant="light" onPress={onClose} className="w-full sm:w-auto">
                       Close
                     </Button>
-                    <Button type="submit" color="primary" isLoading={isLoading}>
+                    <Button type="submit" color="primary" isLoading={isSubmitting} className="w-full sm:w-auto">
                       Save Project
                     </Button>
                   </div>
@@ -334,6 +495,12 @@ const Projects = ({ projects, skills }: projectsProps) => {
         isOpen={isEditModalOpen}
         onOpenChange={onEditModalChange}
         size="2xl"
+        scrollBehavior="inside"
+        className="mx-2"
+        classNames={{
+          base: "max-h-[90vh]",
+          body: "p-4 sm:p-6"
+        }}
       >
         <ModalContent>
           {(onClose) => (
@@ -375,8 +542,8 @@ const Projects = ({ projects, skills }: projectsProps) => {
                     placeholder="Select skills"
                     selectionMode="multiple"
                     isMultiline={true}
-                    selectedKeys={editSkillSet}
-                    onChange={handleEditSkillChange}
+                    selectedKeys={new Set(editSkillSet)}
+                    onSelectionChange={handleEditSkillChange}
                     renderValue={(items) => (
                       <div className="flex flex-wrap gap-2">
                         {items.map((item) =>
@@ -406,14 +573,14 @@ const Projects = ({ projects, skills }: projectsProps) => {
                     )}
                   </Select>
 
-                  <div className="w-full flex justify-start items-center bg-primary-100 rounded-2xl p-4 space-x-4">
-                    <Button onPress={triggerFileChange}>
-                      Upload Project Screenshot
+                  <div className="w-full flex flex-col sm:flex-row justify-start items-center bg-primary-100 rounded-2xl p-4 space-y-2 sm:space-y-0 sm:space-x-4">
+                    <Button onPress={triggerFileChange} size="sm" className="w-full sm:w-auto">
+                      Upload Screenshot
                     </Button>
                     {projectImgPreview !== "" ? (
-                      <Image src={projectImgPreview} width={200} />
+                      <Image src={projectImgPreview} className="w-full sm:w-48 max-w-48" />
                     ) : selectedProject?.image ? (
-                      <Image src={selectedProject.image} width={200} />
+                      <Image src={selectedProject.image} className="w-full sm:w-48 max-w-48" />
                     ) : null}
                     <Input
                       type="file"
@@ -432,15 +599,40 @@ const Projects = ({ projects, skills }: projectsProps) => {
                     <Alert color="danger" variant="faded" title={error} />
                   )}
 
-                  <div className="w-full flex justify-end space-x-2">
-                    <Button color="danger" variant="light" onPress={onClose}>
+                  <div className="w-full flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
+                    <Button color="danger" variant="light" onPress={onClose} className="w-full sm:w-auto">
                       Close
                     </Button>
-                    <Button type="submit" color="primary" isLoading={isLoading}>
+                    <Button type="submit" color="primary" isLoading={isSubmitting} className="w-full sm:w-auto">
                       Update Project
                     </Button>
                   </div>
                 </Form>
+              </ModalBody>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onOpenChange={onDeleteModalChange}
+        size="sm"
+        className="mx-2"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader>Confirm Delete</ModalHeader>
+              <ModalBody>
+                <p>Are you sure you want to delete this project? This action cannot be undone.</p>
+                {success && <Alert color="success" variant="faded" title={success} />}
+                {error && <Alert color="danger" variant="faded" title={error} />}
+                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
+                  <Button variant="light" onPress={onClose} className="w-full sm:w-auto">Cancel</Button>
+                  <Button color="danger" onPress={handleDelete} isLoading={isSubmitting} className="w-full sm:w-auto">Delete</Button>
+                </div>
               </ModalBody>
             </>
           )}

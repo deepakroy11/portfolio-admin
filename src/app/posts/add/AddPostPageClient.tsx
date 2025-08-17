@@ -92,9 +92,12 @@ const PostPageClient = ({ categories, tags }: PostPageClientProps) => {
     <main className="flex-1 p-8 space-y-10">
       <div className="w-full max-w-4xl flex justify-between">
         <h1 className="text-3xl font-bold">Add Post</h1>
+        <Button color="default" as={Link} href="/posts" size="sm">
+          Back
+        </Button>
       </div>
 
-      <section>
+      <section className="w-full">
         <Form
           ref={formRef}
           className="max-w-2xl space-y-4"
